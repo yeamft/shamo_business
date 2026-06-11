@@ -16,7 +16,7 @@ import "../_libs/cookie-es.mjs";
 import "../_libs/seroval.mjs";
 import "../_libs/seroval-plugins.mjs";
 import "node:stream/web";
-const appCss = "/assets/styles-JYVjOHde.css";
+const appCss = "/assets/styles-DQqmlhxv.css";
 function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -1041,6 +1041,8 @@ const highlights = [
   { Icon: Building2, en: "Industrial Zones", am: "ኢንዱስትሪ ዞኖች", desc_en: "Inside tours of Ethiopia's parks.", desc_am: "የኢትዮጵያ ፓርኮች ጉብኝት።" },
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" }
 ];
+const featuredVideo = getVideo("cat_invest-0");
+const featuredVideoEmbed = "https://www.youtube.com/embed/DGHn2uOAVCE?si=8TvkU5dXrwf8vG0r";
 function Home() {
   const { lang, t } = useLang();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
@@ -1091,23 +1093,27 @@ function Home() {
           ] }, s.en)) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "img",
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "aspect-video w-full bg-black", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "iframe",
             {
-              src: "https://images.unsplash.com/photo-1604754742629-3e0498a8ec88?w=1200&q=80",
-              alt: "Featured",
-              className: "aspect-video w-full object-cover opacity-90"
+              className: "h-full w-full",
+              src: featuredVideoEmbed,
+              title: featuredVideo.titleEn,
+              allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+              referrerPolicy: "strict-origin-when-cross-origin",
+              allowFullScreen: true
             }
-          ),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "absolute inset-0 grid place-items-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "grid h-16 w-16 place-items-center rounded-full bg-white/95 shadow-2xl transition-transform hover:scale-110", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { className: "h-7 w-7 translate-x-0.5 fill-primary text-primary" }) }) }),
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/90 via-black/45 to-transparent" }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute bottom-0 left-0 right-0 p-5 text-white", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] font-semibold uppercase tracking-wider text-emerald-300", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Featured · Invest in Ethiopia", am: "ተመራጭ · በኢትዮጵያ ኢንቨስት" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "mt-1 text-lg font-bold leading-tight", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Why Invest in Ethiopia Now", am: "ለምን አሁን በኢትዮጵያ ኢንቨስት ማድረግ" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "mt-1 text-lg font-bold leading-tight", children: lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 text-xs text-white/80", children: [
-              "53.2K ",
+              (featuredVideo.views / 1e3).toFixed(1),
+              "K ",
               t("views"),
-              " · 18:24"
+              " · ",
+              featuredVideo.duration
             ] })
           ] })
         ] }) })
