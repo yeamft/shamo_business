@@ -117,6 +117,7 @@ export function SiteHeader() {
             ))}
             <Link
               to="/admin"
+              search={{ section: "dashboard" }}
               onClick={() => setOpen(false)}
               className="block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent"
             >
@@ -161,7 +162,7 @@ export function SiteFooter() {
           <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
             <li><Link to="/register" className="hover:text-foreground"><Bi en="Job Registration" am="የሥራ ምዝገባ" /></Link></li>
             <li><Link to="/contact" className="hover:text-foreground"><Bi en="Contact" am="ያግኙን" /></Link></li>
-            <li><Link to="/admin" className="hover:text-foreground"><Bi en="Admin" am="አስተዳዳሪ" /></Link></li>
+            <li><Link to="/admin" search={{ section: "dashboard" }} className="hover:text-foreground"><Bi en="Admin" am="አስተዳዳሪ" /></Link></li>
           </ul>
         </div>
 

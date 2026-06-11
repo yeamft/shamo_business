@@ -30,7 +30,7 @@ const highlights = [
 ];
 
 const featuredVideo = getVideo("cat_invest-0");
-const featuredVideoEmbed = "https://www.youtube.com/embed/DGHn2uOAVCE?si=8TvkU5dXrwf8vG0r";
+const featuredVideoEmbed = "https://www.youtube.com/embed/NMYWBOTeg1I";
 
 function Home() {
   const { lang, t } = useLang();

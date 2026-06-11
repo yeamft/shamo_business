@@ -16,7 +16,7 @@ import "../_libs/cookie-es.mjs";
 import "../_libs/seroval.mjs";
 import "../_libs/seroval-plugins.mjs";
 import "node:stream/web";
-const appCss = "/assets/styles-DQqmlhxv.css";
+const appCss = "/assets/styles-DTodIfQw.css";
 function reportLovableError(error, context = {}) {
   if (typeof window === "undefined") return;
   window.__lovableEvents?.captureException?.(
@@ -292,6 +292,7 @@ function SiteHeader() {
         Link,
         {
           to: "/admin",
+          search: { section: "dashboard" },
           onClick: () => setOpen(false),
           className: "block rounded-md px-3 py-2 text-sm font-medium text-muted-foreground hover:bg-accent",
           children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Admin Dashboard", am: "የአስተዳዳሪ ዳሽቦርድ" })
@@ -327,7 +328,7 @@ function SiteFooter() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("ul", { className: "mt-3 space-y-2 text-sm text-muted-foreground", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/register", className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Job Registration", am: "የሥራ ምዝገባ" }) }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/contact", className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Contact", am: "ያግኙን" }) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/admin", className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Admin", am: "አስተዳዳሪ" }) }) })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("li", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/admin", search: { section: "dashboard" }, className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Admin", am: "አስተዳዳሪ" }) }) })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -702,6 +703,9 @@ function Categories() {
   ] });
 }
 const Route$3 = createFileRoute("/admin")({
+  validateSearch: (search) => ({
+    section: typeof search.section === "string" && ["dashboard", "videos", "post", "registrations", "analytics", "settings"].includes(search.section) ? search.section : "dashboard"
+  }),
   head: () => ({
     meta: [
       { title: "Admin Dashboard · Shamo Business Portal" },
@@ -711,7 +715,107 @@ const Route$3 = createFileRoute("/admin")({
   component: Admin
 });
 const inputCls = "h-10 w-full rounded-lg border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring";
+const navItems = [
+  { key: "dashboard", Icon: LayoutDashboard, en: "Dashboard", am: "ዳሽቦርድ" },
+  { key: "videos", Icon: Video, en: "Videos", am: "ቪዲዮዎች" },
+  { key: "post", Icon: Upload, en: "Post Video", am: "ቪዲዮ ይለጥፉ" },
+  { key: "registrations", Icon: Users, en: "Registrations", am: "ምዝገባዎች" },
+  { key: "analytics", Icon: ChartColumn, en: "Analytics", am: "ትንታኔዎች" },
+  { key: "settings", Icon: Settings, en: "Settings", am: "ቅንብሮች" }
+];
+const basePosts = videos.slice(0, 12).map((video, index) => ({
+  ...video,
+  status: ["Draft", "Published", "Scheduled", "Review"][index % 4],
+  createdAtLabel: `${video.postedDays}d ago`,
+  keywords: `${video.category}, ethiopia, business`,
+  descriptionEn: video.titleEn,
+  descriptionAm: video.titleAm,
+  shareTo: index % 2 === 0 ? ["YouTube", "Facebook"] : ["Instagram"]
+}));
+const emptyForm = {
+  category: "",
+  titleEn: "",
+  titleAm: "",
+  keywords: "",
+  descriptionEn: "",
+  descriptionAm: "",
+  fileName: "",
+  shareTo: []
+};
+function getStatusClasses(status) {
+  switch (status) {
+    case "Draft":
+      return "bg-amber-500/15 text-amber-700";
+    case "Published":
+      return "bg-success/15 text-success";
+    case "Scheduled":
+      return "bg-primary/15 text-primary";
+    default:
+      return "bg-secondary text-foreground";
+  }
+}
 function Admin() {
+  const navigate = useNavigate({ from: "/admin" });
+  const { section: activeSection } = Route$3.useSearch();
+  const [searchTerm, setSearchTerm] = reactExports.useState("");
+  const [posts, setPosts] = reactExports.useState(basePosts);
+  const [selectedCategory, setSelectedCategory] = reactExports.useState("");
+  const [message, setMessage] = reactExports.useState("");
+  const [notifications, setNotifications] = reactExports.useState(3);
+  const [form, setForm] = reactExports.useState(emptyForm);
+  const filteredPosts = reactExports.useMemo(() => {
+    const query = searchTerm.trim().toLowerCase();
+    return posts.filter((post) => {
+      const matchesCategory = !selectedCategory || post.category === selectedCategory;
+      const haystack = [post.titleEn, post.titleAm, post.channel, post.channelAm, post.keywords, post.status].join(" ").toLowerCase();
+      const matchesSearch = !query || haystack.includes(query);
+      return matchesCategory && matchesSearch;
+    });
+  }, [posts, searchTerm, selectedCategory]);
+  const totalViews = reactExports.useMemo(() => posts.reduce((sum, post) => sum + post.views, 0), [posts]);
+  const publishedCount = reactExports.useMemo(() => posts.filter((post) => post.status === "Published").length, [posts]);
+  const scheduledCount = reactExports.useMemo(() => posts.filter((post) => post.status === "Scheduled").length, [posts]);
+  const draftCount = reactExports.useMemo(() => posts.filter((post) => post.status === "Draft").length, [posts]);
+  const updateForm = (key, value) => {
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+  const toggleShareTo = (platform) => {
+    setForm((current) => ({
+      ...current,
+      shareTo: current.shareTo.includes(platform) ? current.shareTo.filter((item) => item !== platform) : [...current.shareTo, platform]
+    }));
+  };
+  const submitPost = (status) => {
+    if (!form.category || !form.titleEn || !form.titleAm) {
+      setMessage("Please fill category, English title, and Amharic title before saving.");
+      return;
+    }
+    const newPost = {
+      id: `admin-${Date.now()}`,
+      titleEn: form.titleEn,
+      titleAm: form.titleAm,
+      thumb: videos[0]?.thumb ?? "",
+      duration: "00:00",
+      views: 0,
+      channel: "Shamo Admin",
+      channelAm: "ሻሞ አስተዳዳሪ",
+      category: form.category,
+      postedDays: 0,
+      status,
+      createdAtLabel: "Just now",
+      keywords: form.keywords,
+      descriptionEn: form.descriptionEn,
+      descriptionAm: form.descriptionAm,
+      shareTo: form.shareTo
+    };
+    setPosts((current) => [newPost, ...current]);
+    setForm(emptyForm);
+    void navigate({ search: (prev) => ({ ...prev, section: "videos" }) });
+    setNotifications((count) => count + 1);
+    setMessage(
+      status === "Published" ? "Video posted successfully and added to the recent posts table." : status === "Scheduled" ? "Video saved with scheduled status." : "Draft saved successfully."
+    );
+  };
   return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-h-screen bg-muted/30", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid min-h-screen lg:grid-cols-[260px_1fr]", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "hidden border-r border-border bg-card lg:block", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-16 items-center gap-2 border-b border-border px-5", children: [
@@ -721,66 +825,85 @@ function Admin() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] text-muted-foreground font-ethiopic", children: "የአስተዳዳሪ ፖርታል" })
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("nav", { className: "space-y-1 p-3", children: [
-        { Icon: LayoutDashboard, en: "Dashboard", am: "ዳሽቦርድ", active: true },
-        { Icon: Video, en: "Videos", am: "ቪዲዮዎች" },
-        { Icon: Upload, en: "Post Video", am: "ቪዲዮ ይለጥፉ" },
-        { Icon: Users, en: "Registrations", am: "ምዝገባዎች" },
-        { Icon: ChartColumn, en: "Analytics", am: "ትንታኔዎች" },
-        { Icon: Settings, en: "Settings", am: "ቅንብሮች" }
-      ].map(({ Icon, en, am, active }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
-        "button",
+      /* @__PURE__ */ jsxRuntimeExports.jsx("nav", { className: "space-y-1 p-3", children: navItems.map(({ key, Icon, en, am }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        Link,
         {
-          className: `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`,
+          to: "/admin",
+          search: { section: key },
+          className: `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${activeSection === key ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`,
           children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-4 w-4" }),
             /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex-1 text-left", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en, am }) })
           ]
         },
-        en
+        key
       )) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", className: "block rounded-lg border border-border bg-background px-3 py-2 text-center text-xs font-semibold hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "← Back to Site", am: "← ወደ ድረ-ገጹ ይመለሱ" }) }) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Dashboard", am: "ዳሽቦርድ" }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          Bi,
+          {
+            en: navItems.find((item) => item.key === activeSection)?.en ?? "Dashboard",
+            am: navItems.find((item) => item.key === activeSection)?.am ?? "ዳሽቦርድ"
+          }
+        ) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative hidden sm:block", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("input", { placeholder: "Search posts…", className: "h-9 w-64 rounded-full border border-border bg-background pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" })
+            /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: searchTerm, onChange: (e) => setSearchTerm(e.target.value), placeholder: "Search posts…", className: "h-9 w-64 rounded-full border border-border bg-background pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: () => setNotifications(0), className: "relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { className: "h-4 w-4" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute right-1 top-1 h-2 w-2 rounded-full bg-destructive" })
+            notifications > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] text-white", children: notifications })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 place-items-center rounded-full gradient-brand text-xs font-bold text-white", children: "AB" })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("main", { className: "space-y-6 p-4 sm:p-6", children: [
+        message && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start gap-3 rounded-2xl border border-success/30 bg-success/10 px-4 py-3 text-sm text-success", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "mt-0.5 h-4 w-4 shrink-0" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: message })
+        ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-4", children: [
-          { en: "Total Videos", am: "ጠቅላላ ቪዲዮዎች", v: "1,248", d: "+24 this week", dam: "ይህን ሳምንት +24" },
-          { en: "Monthly Views", am: "ወርሃዊ እይታዎች", v: "843K", d: "+12.4%", dam: "+12.4%" },
-          { en: "Registrations", am: "ምዝገባዎች", v: "2,193", d: "+158", dam: "+158" },
-          { en: "Subscribers", am: "ተመዝጋቢዎች", v: "124K", d: "+1,204", dam: "+1,204" }
-        ].map((s) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl border border-border bg-card p-5", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs font-semibold text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: s.en, am: s.am }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-2xl font-extrabold", children: s.v }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-xs font-medium text-success", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: s.d, am: s.dam }) })
-        ] }, s.en)) }),
+          { en: "Total Videos", am: "ጠቅላላ ቪዲዮዎች", value: `${posts.length}`, note: `${publishedCount} published` },
+          { en: "Total Views", am: "ጠቅላላ እይታዎች", value: formatViews(totalViews), note: `${scheduledCount} scheduled` },
+          { en: "Drafts", am: "ድራፍቶች", value: `${draftCount}`, note: `${notifications} new alerts` },
+          { en: "Categories", am: "ምድቦች", value: `${categories.length}`, note: `${filteredPosts.length} visible posts` }
+        ].map((card) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl border border-border bg-card p-5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs font-semibold text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: card.en, am: card.am }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-2xl font-extrabold", children: card.value }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-xs font-medium text-success", children: card.note })
+        ] }, card.en)) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-6 lg:grid-cols-[1.2fr_1fr]", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Post a New Video", am: "አዲስ ቪዲዮ ይለጥፉ" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Bilingual: fill English & Amharic fields", am: "ሁለት ቋንቋ: እንግሊዘኛ እና አማርኛ ይሙሉ" }) })
-            ] }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Post a New Video", am: "አዲስ ቪዲዮ ይለጥፉ" }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Bilingual: fill English & Amharic fields", am: "ሁለት ቋንቋ: እንግሊዘኛ እና አማርኛ ይሙሉ" }) })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  type: "button",
+                  onClick: () => {
+                    setForm(emptyForm);
+                    setMessage("Form cleared.");
+                  },
+                  className: "rounded-full border border-border px-4 py-2 text-xs font-semibold hover:bg-accent",
+                  children: "Reset"
+                }
+              )
+            ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5 grid gap-4", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "text-xs font-semibold", children: [
                   "Category / ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-ethiopic", children: "ምድብ" })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { className: `mt-1.5 ${inputCls}`, defaultValue: "", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: "—" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { className: `mt-1.5 ${inputCls}`, value: form.category, onChange: (e) => updateForm("category", e.target.value), children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "Select category" }),
                   categories.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: c, children: [
                     dict[c].en,
                     " · ",
@@ -791,11 +914,11 @@ function Admin() {
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-4 sm:grid-cols-2", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-semibold", children: "Title (EN)" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { className: `mt-1.5 ${inputCls}`, placeholder: "Video title in English" })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: form.titleEn, onChange: (e) => updateForm("titleEn", e.target.value), className: `mt-1.5 ${inputCls}`, placeholder: "Video title in English" })
                 ] }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-semibold font-ethiopic", children: "ርዕስ (አማ)" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { className: `mt-1.5 ${inputCls} font-ethiopic`, placeholder: "የቪዲዮ ርዕስ በአማርኛ" })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: form.titleAm, onChange: (e) => updateForm("titleAm", e.target.value), className: `mt-1.5 ${inputCls} font-ethiopic`, placeholder: "የቪዲዮ ርዕስ በአማርኛ" })
                 ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -803,16 +926,16 @@ function Admin() {
                   "Keywords / ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-ethiopic", children: "ቁልፍ ቃላት" })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("input", { className: `mt-1.5 ${inputCls}`, placeholder: "investment, ethiopia, manufacturing, ኢንቨስት" })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("input", { value: form.keywords, onChange: (e) => updateForm("keywords", e.target.value), className: `mt-1.5 ${inputCls}`, placeholder: "investment, ethiopia, manufacturing, ኢንቨስት" })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-4 sm:grid-cols-2", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-semibold", children: "Description (EN)" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("textarea", { rows: 4, className: `mt-1.5 w-full rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring`, placeholder: "Describe the video…" })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("textarea", { value: form.descriptionEn, onChange: (e) => updateForm("descriptionEn", e.target.value), rows: 4, className: `mt-1.5 w-full rounded-lg border border-input bg-background p-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring`, placeholder: "Describe the video…" })
                 ] }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-semibold font-ethiopic", children: "መግለጫ (አማ)" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("textarea", { rows: 4, className: `mt-1.5 w-full rounded-lg border border-input bg-background p-3 text-sm font-ethiopic focus:outline-none focus:ring-2 focus:ring-ring`, placeholder: "ቪዲዮውን ይግለጹ…" })
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("textarea", { value: form.descriptionAm, onChange: (e) => updateForm("descriptionAm", e.target.value), rows: 4, className: `mt-1.5 w-full rounded-lg border border-input bg-background p-3 text-sm font-ethiopic focus:outline-none focus:ring-2 focus:ring-ring`, placeholder: "ቪዲዮውን ይግለጹ…" })
                 ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -820,11 +943,14 @@ function Admin() {
                   "Video file / ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-ethiopic", children: "የቪዲዮ ፋይል" })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1.5 flex items-center justify-center rounded-xl border-2 border-dashed border-border bg-background/50 px-6 py-8 text-center", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "mx-auto h-7 w-7 text-muted-foreground" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Drag & drop or click to upload", am: "ይጎትቱ ወይም ይጫኑ" }) }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "MP4, MOV up to 2GB", am: "MP4, MOV እስከ 2GB" }) })
-                ] }) })
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "mt-1.5 flex cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-border bg-background/50 px-6 py-8 text-center", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "file", accept: "video/*", className: "hidden", onChange: (e) => updateForm("fileName", e.target.files?.[0]?.name ?? "") }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Upload, { className: "mx-auto h-7 w-7 text-muted-foreground" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Drag & drop or click to upload", am: "ይጎትቱ ወይም ይጫኑ" }) }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-muted-foreground", children: form.fileName || "MP4, MOV up to 2GB" })
+                  ] })
+                ] })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "text-xs font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Cross-post to", am: "በተጨማሪ ይለጥፉ" }) }),
@@ -833,24 +959,32 @@ function Admin() {
                   { Icon: Music2, name: "TikTok" },
                   { Icon: Instagram, name: "Instagram" },
                   { Icon: Facebook, name: "Facebook" }
-                ].map(({ Icon, name }) => /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "inline-flex cursor-pointer items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-accent", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", className: "accent-primary" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-3.5 w-3.5" }),
+                ].map(({ Icon, name }) => /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    type: "button",
+                    onClick: () => toggleShareTo(name),
+                    className: `inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-semibold ${form.shareTo.includes(name) ? "border-primary bg-primary/10 text-primary" : "border-border bg-background hover:bg-accent"}`,
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-3.5 w-3.5" }),
+                      name
+                    ]
+                  },
                   name
-                ] }, name)) })
+                )) })
               ] }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap gap-2 pt-2", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => submitPost("Draft"), className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Save, { className: "h-3.5 w-3.5" }),
                   " ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Save as Draft", am: "ድራፍት አስቀምጥ" })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => submitPost("Scheduled"), className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-background px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "h-3.5 w-3.5" }),
                   " ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Schedule", am: "ጊዜ ቀጥር" })
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "ml-auto inline-flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2 text-xs font-bold text-white shadow-md", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => submitPost("Published"), className: "ml-auto inline-flex items-center gap-1.5 rounded-full gradient-brand px-5 py-2 text-xs font-bold text-white shadow-md", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "h-3.5 w-3.5" }),
                   " ",
                   /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Post Now", am: "አሁን ይለጥፉ" })
@@ -861,27 +995,36 @@ function Admin() {
           /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Recent Posts", am: "የቅርብ ልጥፎች" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "text-xs font-semibold text-primary hover:underline", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "View all", am: "ሁሉንም ይመልከቱ" }) })
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { className: "rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold", value: selectedCategory, onChange: (e) => setSelectedCategory(e.target.value), children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", children: "All categories" }),
+                categories.map((category) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: category, children: dict[category].en }, category))
+              ] })
             ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full min-w-[480px] text-sm", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full min-w-[520px] text-sm", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border text-left text-xs uppercase text-muted-foreground", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Title", am: "ርዕስ" }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Views", am: "እይታዎች" }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Status", am: "ሁኔታ" }) }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2 font-semibold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Shared", am: "የተጋራ" }) }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2" })
               ] }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: videos.slice(0, 8).map((v, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border/60 last:border-0", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: v.thumb, alt: "", className: "h-10 w-16 shrink-0 rounded object-cover" }),
-                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "truncate text-sm font-semibold", children: v.titleEn }),
-                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "truncate text-[11px] text-muted-foreground font-ethiopic", children: v.titleAm })
-                  ] })
-                ] }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2 text-sm", children: formatViews(v.views) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${i % 4 === 0 ? "bg-amber-500/15 text-amber-700" : i % 4 === 1 ? "bg-success/15 text-success" : i % 4 === 2 ? "bg-primary/15 text-primary" : "bg-secondary text-foreground"}`, children: i % 4 === 0 ? "Draft" : i % 4 === 1 ? "Published" : i % 4 === 2 ? "Scheduled" : "Review" }) }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "grid h-7 w-7 place-items-center rounded-full hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(EllipsisVertical, { className: "h-4 w-4" }) }) })
-              ] }, v.id)) })
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("tbody", { children: [
+                filteredPosts.slice(0, 10).map((post) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border/60 last:border-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: post.thumb, alt: "", className: "h-10 w-16 shrink-0 rounded object-cover" }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "truncate text-sm font-semibold", children: post.titleEn }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "truncate text-[11px] text-muted-foreground font-ethiopic", children: post.titleAm }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] text-muted-foreground", children: post.createdAtLabel })
+                    ] })
+                  ] }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2 text-sm", children: formatViews(post.views) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `inline-flex rounded-full px-2 py-0.5 text-[11px] font-semibold ${getStatusClasses(post.status)}`, children: post.status }) }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 pr-2 text-xs text-muted-foreground", children: post.shareTo.length ? post.shareTo.join(", ") : "—" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => setMessage(`Selected: ${post.titleEn}`), className: "grid h-7 w-7 place-items-center rounded-full hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(EllipsisVertical, { className: "h-4 w-4" }) }) })
+                ] }, post.id)),
+                filteredPosts.length === 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 5, className: "py-8 text-center text-sm text-muted-foreground", children: "No posts matched your current search or category filter." }) })
+              ] })
             ] }) })
           ] })
         ] })
@@ -1042,7 +1185,7 @@ const highlights = [
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" }
 ];
 const featuredVideo = getVideo("cat_invest-0");
-const featuredVideoEmbed = "https://www.youtube.com/embed/DGHn2uOAVCE?si=8TvkU5dXrwf8vG0r";
+const featuredVideoEmbed = "https://www.youtube.com/embed/NMYWBOTeg1I";
 function Home() {
   const { lang, t } = useLang();
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
