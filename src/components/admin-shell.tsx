@@ -1,6 +1,6 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { BarChart3, Bell, LayoutDashboard, LogOut, Search, Settings, Upload, Users, Video as VideoIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import { BarChart3, Bell, LayoutDashboard, LogOut, Menu, Search, Settings, Upload, Users, Video as VideoIcon, X } from "lucide-react";
+import { useState, type ReactNode } from "react";
 
 import { useAdminAuth } from "@/lib/admin-auth";
 import { useAdminData } from "@/lib/admin-data";
@@ -20,9 +20,77 @@ export function AdminShell({ children }: { children: ReactNode }) {
   const { user, logout } = useAdminAuth();
   const { notifications, clearNotifications } = useAdminData();
   const activeItem = navItems.find((item) => location.pathname === item.to) ?? navItems[0];
+  const [isMobileNavOpen, setIsMobileNavOpen] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/admin";
+  };
+
+  const closeMobileNav = () => setIsMobileNavOpen(false);
 
   return (
     <div className="min-h-screen bg-muted/30">
+      {isMobileNavOpen && (
+        <div className="fixed inset-0 z-40 bg-black/50 lg:hidden" onClick={closeMobileNav} aria-hidden="true" />
+      )}
+
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 w-[260px] border-r border-border bg-card transition-transform duration-200 lg:hidden ${
+          isMobileNavOpen ? "translate-x-0" : "-translate-x-full"
+        }`}
+      >
+        <div className="flex h-16 items-center justify-between gap-2 border-b border-border px-5">
+          <div className="flex items-center gap-2">
+            <div className="grid h-9 w-9 place-items-center rounded-lg gradient-brand text-sm font-bold text-white">SB</div>
+            <div className="leading-tight">
+              <div className="text-sm font-bold">Admin Portal</div>
+              <div className="text-[11px] text-muted-foreground font-ethiopic">የአስተዳዳሪ ፖርታል</div>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={closeMobileNav}
+            className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background"
+            aria-label="Close admin menu"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <nav className="space-y-1 p-3">
+          {navItems.map(({ to, Icon, en, am }) => {
+            const active = location.pathname === to;
+            return (
+              <Link
+                key={to}
+                to={to}
+                onClick={closeMobileNav}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                }`}
+              >
+                <Icon className="h-4 w-4" />
+                <span className="flex-1 text-left"><Bi en={en} am={am} /></span>
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="space-y-2 p-3">
+          <Link to="/" onClick={closeMobileNav} className="block rounded-lg border border-border bg-background px-3 py-2 text-center text-xs font-semibold hover:bg-accent">
+            <Bi en="← Back to Site" am="← ወደ ድረ-ገጹ ይመለሱ" />
+          </Link>
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent"
+          >
+            <LogOut className="h-3.5 w-3.5" /> Logout
+          </button>
+        </div>
+      </aside>
+
       <div className="grid min-h-screen lg:grid-cols-[260px_1fr]">
         <aside className="hidden border-r border-border bg-card lg:block">
           <div className="flex h-16 items-center gap-2 border-b border-border px-5">
@@ -57,10 +125,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
             </Link>
             <button
               type="button"
-              onClick={() => {
-                logout();
-                window.location.href = "/admin";
-              }}
+              onClick={handleLogout}
               className="flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent"
             >
               <LogOut className="h-3.5 w-3.5" /> Logout
@@ -70,6 +135,14 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
         <div>
           <header className="sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6">
+            <button
+              type="button"
+              onClick={() => setIsMobileNavOpen(true)}
+              className="grid h-9 w-9 place-items-center rounded-full border border-border bg-background lg:hidden"
+              aria-label="Open admin menu"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
             <h1 className="text-lg font-bold"><Bi en={activeItem.en} am={activeItem.am} /></h1>
             <div className="ml-auto flex items-center gap-2">
               <div className="relative hidden sm:block">

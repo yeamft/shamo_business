@@ -3,7 +3,7 @@ import { Q as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { c as createRouter, a as createRootRouteWithContext, u as useRouter, L as Link, O as Outlet, H as HeadContent, S as Scripts, b as createFileRoute, d as useNavigate, e as useLocation } from "../_libs/tanstack__react-router.mjs";
 import { Q as notFound } from "../_libs/tanstack__router-core.mjs";
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-BaCYW0Cp.mjs";
+import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-DTSs4Tuf.mjs";
 import "../_libs/seroval.mjs";
 import { T as ThumbsUp, E as Eye, S as Send, C as CircleCheck, B as Briefcase, M as MapPin, P as Phone, a as Mail, b as Play, c as Target, H as Heart, A as ArrowRight, d as TrendingUp, L as Lightbulb, e as Building2, f as Search, G as Globe, X, g as Menu, h as ShieldCheck, i as LockKeyhole, j as MessageSquareMore, k as Trash2, F as FileText, l as Clock3, m as FolderKanban, U as Users, n as ChartColumn, o as ChevronLeft, p as ChevronRight, q as LayoutDashboard, V as Video, r as Upload, s as Settings, t as LogOut, u as Bell } from "../_libs/lucide-react.mjs";
 import { o as objectType, s as stringType, e as enumType, n as numberType, b as booleanType, a as arrayType } from "../_libs/zod.mjs";
@@ -22,7 +22,7 @@ import "node:async_hooks";
 import "../_libs/h3-v2.mjs";
 import "../_libs/rou3.mjs";
 import "../_libs/srvx.mjs";
-const appCss = "/assets/styles-CWKNraB9.css";
+const appCss = "/assets/styles-NIkugZTF.css";
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
   const serverFnMeta = { id: functionId };
@@ -128,6 +128,11 @@ const markAdminRegistrationReviewed = createServerFn({
 }).validator(objectType({
   registrationId: stringType()
 })).handler(createSsrRpc("0605ecdb5dd3d1f4e0199b45346d5f51b3a175edc153ef446b6fd8b2e5ad3197"));
+const deleteAdminRegistration = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  registrationId: stringType()
+})).handler(createSsrRpc("4fe6cf1cc01db00a8a929bd532c4ef3e5286e7ba2fcf2084effd3023073532e1"));
 const saveAdminSettings = createServerFn({
   method: "POST"
 }).validator(settingsSchema).handler(createSsrRpc("dd60a78cadd3914acc296c74f428482695438f71f6339119b48711447f42defb"));
@@ -379,6 +384,10 @@ function AdminDataProvider({ children }) {
             (registration) => registration.id === registrationId ? { ...registration, status: "Reviewed" } : registration
           )
         );
+      },
+      deleteRegistration: async (registrationId) => {
+        await deleteAdminRegistration({ data: { registrationId } });
+        setRegistrations((current) => current.filter((registration) => registration.id !== registrationId));
       },
       saveSettings: async (nextSettings) => {
         await saveAdminSettings({ data: nextSettings });
@@ -1701,67 +1710,141 @@ function AdminShell({ children }) {
   const { user, logout } = useAdminAuth();
   const { notifications, clearNotifications } = useAdminData();
   const activeItem = navItems.find((item) => location.pathname === item.to) ?? navItems[0];
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "min-h-screen bg-muted/30", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid min-h-screen lg:grid-cols-[260px_1fr]", children: [
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "hidden border-r border-border bg-card lg:block", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-16 items-center gap-2 border-b border-border px-5", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 place-items-center rounded-lg gradient-brand text-sm font-bold text-white", children: "SB" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "leading-tight", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-bold", children: "Admin Portal" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] text-muted-foreground font-ethiopic", children: "የአስተዳዳሪ ፖርታል" })
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("nav", { className: "space-y-1 p-3", children: navItems.map(({ to, Icon, en, am }) => {
-        const active = location.pathname === to;
-        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Link,
-          {
-            to,
-            className: `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`,
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-4 w-4" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex-1 text-left", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en, am }) })
-            ]
-          },
-          to
-        );
-      }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 p-3", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", className: "block rounded-lg border border-border bg-background px-3 py-2 text-center text-xs font-semibold hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "← Back to Site", am: "← ወደ ድረ-ገጹ ይመለሱ" }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          "button",
-          {
-            type: "button",
-            onClick: () => {
-              logout();
-              window.location.href = "/admin";
+  const [isMobileNavOpen, setIsMobileNavOpen] = reactExports.useState(false);
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/admin";
+  };
+  const closeMobileNav = () => setIsMobileNavOpen(false);
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-muted/30", children: [
+    isMobileNavOpen && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-40 bg-black/50 lg:hidden", onClick: closeMobileNav, "aria-hidden": "true" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+      "aside",
+      {
+        className: `fixed inset-y-0 left-0 z-50 w-[260px] border-r border-border bg-card transition-transform duration-200 lg:hidden ${isMobileNavOpen ? "translate-x-0" : "-translate-x-full"}`,
+        children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-16 items-center justify-between gap-2 border-b border-border px-5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 place-items-center rounded-lg gradient-brand text-sm font-bold text-white", children: "SB" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "leading-tight", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-bold", children: "Admin Portal" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] text-muted-foreground font-ethiopic", children: "የአስተዳዳሪ ፖርታል" })
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                type: "button",
+                onClick: closeMobileNav,
+                className: "grid h-9 w-9 place-items-center rounded-full border border-border bg-background",
+                "aria-label": "Close admin menu",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "h-4 w-4" })
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("nav", { className: "space-y-1 p-3", children: navItems.map(({ to, Icon, en, am }) => {
+            const active = location.pathname === to;
+            return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              Link,
+              {
+                to,
+                onClick: closeMobileNav,
+                className: `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`,
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-4 w-4" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex-1 text-left", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en, am }) })
+                ]
+              },
+              to
+            );
+          }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 p-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", onClick: closeMobileNav, className: "block rounded-lg border border-border bg-background px-3 py-2 text-center text-xs font-semibold hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "← Back to Site", am: "← ወደ ድረ-ገጹ ይመለሱ" }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "button",
+              {
+                type: "button",
+                onClick: handleLogout,
+                className: "flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(LogOut, { className: "h-3.5 w-3.5" }),
+                  " Logout"
+                ]
+              }
+            )
+          ] })
+        ]
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid min-h-screen lg:grid-cols-[260px_1fr]", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { className: "hidden border-r border-border bg-card lg:block", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex h-16 items-center gap-2 border-b border-border px-5", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 place-items-center rounded-lg gradient-brand text-sm font-bold text-white", children: "SB" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "leading-tight", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-bold", children: "Admin Portal" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] text-muted-foreground font-ethiopic", children: "የአስተዳዳሪ ፖርታል" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("nav", { className: "space-y-1 p-3", children: navItems.map(({ to, Icon, en, am }) => {
+          const active = location.pathname === to;
+          return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            Link,
+            {
+              to,
+              className: `flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${active ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-accent hover:text-foreground"}`,
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Icon, { className: "h-4 w-4" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex-1 text-left", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en, am }) })
+              ]
             },
-            className: "flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(LogOut, { className: "h-3.5 w-3.5" }),
-              " Logout"
-            ]
-          }
-        )
-      ] })
-    ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: activeItem.en, am: activeItem.am }) }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative hidden sm:block", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" }),
-            /* @__PURE__ */ jsxRuntimeExports.jsx("input", { placeholder: "Search admin pages…", className: "h-9 w-64 rounded-full border border-border bg-background pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: clearNotifications, className: "relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { className: "h-4 w-4" }),
-            notifications > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] text-white", children: notifications })
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold", children: user?.displayName ?? "Admin" })
+            to
+          );
+        }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-2 p-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", className: "block rounded-lg border border-border bg-background px-3 py-2 text-center text-xs font-semibold hover:bg-accent", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "← Back to Site", am: "← ወደ ድረ-ገጹ ይመለሱ" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: handleLogout,
+              className: "flex w-full items-center justify-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-xs font-semibold hover:bg-accent",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(LogOut, { className: "h-3.5 w-3.5" }),
+                " Logout"
+              ]
+            }
+          )
         ] })
       ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "space-y-6 p-4 sm:p-6", children })
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("header", { className: "sticky top-0 z-20 flex h-16 items-center gap-3 border-b border-border bg-card/80 px-4 backdrop-blur sm:px-6", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: () => setIsMobileNavOpen(true),
+              className: "grid h-9 w-9 place-items-center rounded-full border border-border bg-background lg:hidden",
+              "aria-label": "Open admin menu",
+              children: /* @__PURE__ */ jsxRuntimeExports.jsx(Menu, { className: "h-4 w-4" })
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-lg font-bold", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: activeItem.en, am: activeItem.am }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "ml-auto flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative hidden sm:block", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Search, { className: "pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("input", { placeholder: "Search admin pages…", className: "h-9 w-64 rounded-full border border-border bg-background pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { onClick: clearNotifications, className: "relative grid h-9 w-9 place-items-center rounded-full border border-border bg-background", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Bell, { className: "h-4 w-4" }),
+              notifications > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[10px] text-white", children: notifications })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "rounded-full border border-border bg-background px-3 py-2 text-xs font-semibold", children: user?.displayName ?? "Admin" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("main", { className: "space-y-6 p-4 sm:p-6", children })
+      ] })
     ] })
-  ] }) });
+  ] });
 }
 function useRequireAdmin() {
   const navigate = useNavigate();

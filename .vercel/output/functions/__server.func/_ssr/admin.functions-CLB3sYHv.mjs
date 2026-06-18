@@ -1,4 +1,4 @@
-import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-BaCYW0Cp.mjs";
+import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-DTSs4Tuf.mjs";
 import { S as Socket, P as Presence } from "../_libs/supabase__phoenix.mjs";
 import { I as IcebergRestCatalog } from "../_libs/iceberg-js.mjs";
 import "../_libs/seroval.mjs";
@@ -19766,6 +19766,24 @@ const markAdminRegistrationReviewed = createServerFn({
     ok: true
   };
 });
+const deleteAdminRegistration_createServerFn_handler = createServerRpc({
+  id: "4fe6cf1cc01db00a8a929bd532c4ef3e5286e7ba2fcf2084effd3023073532e1",
+  name: "deleteAdminRegistration",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => deleteAdminRegistration.__executeServer(opts));
+const deleteAdminRegistration = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  registrationId: stringType()
+})).handler(deleteAdminRegistration_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  await supabase.from("job_registrations").delete().eq("id", data.registrationId);
+  return {
+    ok: true
+  };
+});
 const saveAdminSettings_createServerFn_handler = createServerRpc({
   id: "dd60a78cadd3914acc296c74f428482695438f71f6339119b48711447f42defb",
   name: "saveAdminSettings",
@@ -19838,6 +19856,7 @@ export {
   createAdminPost_createServerFn_handler,
   createVideoComment_createServerFn_handler,
   deleteAdminPost_createServerFn_handler,
+  deleteAdminRegistration_createServerFn_handler,
   getAdminSnapshot_createServerFn_handler,
   getPublicVideoById_createServerFn_handler,
   getPublicVideos_createServerFn_handler,
