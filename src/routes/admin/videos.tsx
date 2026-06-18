@@ -6,14 +6,11 @@ import { AdminShell } from "@/components/admin-shell";
 import { useRequireAdmin } from "@/lib/admin-guard";
 import { categories, getStatusClasses, useAdminData } from "@/lib/admin-data";
 import { dict, useLang } from "@/lib/i18n";
-import type { PostStatus } from "@/lib/video-types";
 import { formatViews } from "@/lib/videos";
 
 export const Route = createFileRoute("/admin/videos")({
   component: RouteComponent,
 });
-
-const statusOptions: PostStatus[] = ["Draft", "Review", "Scheduled", "Published"];
 
 function getCommentCount(postId: string) {
   const numeric = postId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
@@ -35,7 +32,6 @@ function RouteComponent() {
   const { posts, updatePostStatus, deletePost } = useAdminData();
   const { lang } = useLang();
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [statusFilter, setStatusFilter] = useState<string>("all");
   const [expandedCommentsPostId, setExpandedCommentsPostId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const pageSize = 5;
@@ -44,10 +40,9 @@ function RouteComponent() {
     () =>
       posts.filter((post) => {
         const categoryMatch = categoryFilter === "all" || post.category === categoryFilter;
-        const statusMatch = statusFilter === "all" || post.status === statusFilter;
-        return categoryMatch && statusMatch;
+        return categoryMatch;
       }),
-    [categoryFilter, posts, statusFilter],
+    [categoryFilter, posts],
   );
 
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
@@ -68,20 +63,12 @@ function RouteComponent() {
           </Link>
         </div>
 
-        <div className="mt-5 grid gap-3 md:grid-cols-2">
+        <div className="mt-5 grid gap-3 md:grid-cols-1">
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-11 rounded-xl border border-input bg-background px-3 text-sm">
             <option value="all">All categories</option>
             {categories.map((category) => (
               <option key={category} value={category}>
                 {dict[category].en}
-              </option>
-            ))}
-          </select>
-          <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="h-11 rounded-xl border border-input bg-background px-3 text-sm">
-            <option value="all">All statuses</option>
-            {statusOptions.map((status) => (
-              <option key={status} value={status}>
-                {status}
               </option>
             ))}
           </select>
@@ -100,7 +87,7 @@ function RouteComponent() {
                 <th className="py-3 pr-3">Views</th>
                 <th className="py-3 pr-3">Comments</th>
                 <th className="py-3 pr-3">Status</th>
-                <th className="py-3 pr-3">Change status</th>
+                <th className="py-3 pr-3">Visibility</th>
                 <th className="py-3 text-right">Action</th>
               </tr>
             </thead>
@@ -134,17 +121,17 @@ function RouteComponent() {
                       </span>
                     </td>
                     <td className="py-4 pr-3">
-                      <select
-                        value={post.status}
-                        onChange={(e) => updatePostStatus(post.id, e.target.value as PostStatus)}
-                        className="h-9 rounded-lg border border-input bg-background px-3 text-sm"
+                      <button
+                        type="button"
+                        onClick={() => updatePostStatus(post.id, post.status === "Published" ? "Draft" : "Published")}
+                        className={`rounded-full px-3 py-1.5 text-xs font-semibold ${
+                          post.status === "Published"
+                            ? "border border-amber-300 bg-amber-50 text-amber-700"
+                            : "border border-emerald-300 bg-emerald-50 text-emerald-700"
+                        }`}
                       >
-                        {statusOptions.map((status) => (
-                          <option key={status} value={status}>
-                            {status}
-                          </option>
-                        ))}
-                      </select>
+                        {post.status === "Published" ? "Unpublish" : "Publish"}
+                      </button>
                     </td>
                     <td className="py-4 text-right">
                       <button

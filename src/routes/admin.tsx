@@ -2,7 +2,7 @@ import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tansta
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { adminCredentials, useAdminAuth } from "@/lib/admin-auth";
+import { useAdminAuth } from "@/lib/admin-auth";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({
@@ -18,8 +18,8 @@ function AdminLoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAdminAuth();
-  const [username, setUsername] = useState(adminCredentials.username);
-  const [password, setPassword] = useState(adminCredentials.password);
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   if (location.pathname !== "/admin") {
@@ -87,13 +87,6 @@ function AdminLoginPage() {
             Login to Admin Dashboard
           </button>
         </form>
-
-        <div className="mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm">
-          <div className="font-semibold">Demo credentials</div>
-          <div className="mt-2 text-muted-foreground">Username: <span className="font-semibold text-foreground">{adminCredentials.username}</span></div>
-          <div className="text-muted-foreground">Password: <span className="font-semibold text-foreground">{adminCredentials.password}</span></div>
-        </div>
-
         <div className="mt-6 text-center text-sm">
           <Link to="/" className="font-semibold text-primary hover:underline">← Back to main site</Link>
         </div>

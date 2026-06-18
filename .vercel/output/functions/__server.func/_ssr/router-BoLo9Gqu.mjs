@@ -3,7 +3,7 @@ import { Q as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { c as createRouter, a as createRootRouteWithContext, u as useRouter, L as Link, O as Outlet, H as HeadContent, S as Scripts, b as createFileRoute, d as useNavigate, e as useLocation } from "../_libs/tanstack__react-router.mjs";
 import { Q as notFound } from "../_libs/tanstack__router-core.mjs";
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-La95DZ7K.mjs";
+import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-BaCYW0Cp.mjs";
 import "../_libs/seroval.mjs";
 import { T as ThumbsUp, E as Eye, S as Send, C as CircleCheck, B as Briefcase, M as MapPin, P as Phone, a as Mail, b as Play, c as Target, H as Heart, A as ArrowRight, d as TrendingUp, L as Lightbulb, e as Building2, f as Search, G as Globe, X, g as Menu, h as ShieldCheck, i as LockKeyhole, j as MessageSquareMore, k as Trash2, F as FileText, l as Clock3, m as FolderKanban, U as Users, n as ChartColumn, o as ChevronLeft, p as ChevronRight, q as LayoutDashboard, V as Video, r as Upload, s as Settings, t as LogOut, u as Bell } from "../_libs/lucide-react.mjs";
 import { o as objectType, s as stringType, e as enumType, n as numberType, b as booleanType, a as arrayType } from "../_libs/zod.mjs";
@@ -22,7 +22,7 @@ import "node:async_hooks";
 import "../_libs/h3-v2.mjs";
 import "../_libs/rou3.mjs";
 import "../_libs/srvx.mjs";
-const appCss = "/assets/styles-DD3sqPYT.css";
+const appCss = "/assets/styles-CWKNraB9.css";
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
   const serverFnMeta = { id: functionId };
@@ -50,8 +50,15 @@ const formSchema = objectType({
   descriptionEn: stringType(),
   descriptionAm: stringType(),
   fileName: stringType(),
+  thumbnailFileName: stringType(),
+  thumbnailUrl: stringType(),
   youtubeUrl: stringType().url(),
   shareTo: arrayType(enumType(["YouTube", "TikTok", "Instagram", "Facebook"]))
+});
+const uploadVideoSchema = objectType({
+  fileName: stringType().min(1),
+  contentType: stringType().min(1),
+  base64: stringType().min(1)
 });
 const adminLogin = createServerFn({
   method: "POST"
@@ -68,6 +75,12 @@ const createAdminPost = createServerFn({
   form: formSchema,
   status: enumType(["Draft", "Published", "Scheduled", "Review"])
 })).handler(createSsrRpc("512cce003a8035bb33f8499c0212a28304c8a716dbed15b398ef1aefedb50cc3"));
+const uploadAdminThumbnailFile = createServerFn({
+  method: "POST"
+}).validator(uploadVideoSchema).handler(createSsrRpc("a974ebd9332e33cd4e59ff97da2ce715b9c7f4d743895a1ca241f0f38a46fc5c"));
+const uploadAdminVideoFile = createServerFn({
+  method: "POST"
+}).validator(uploadVideoSchema).handler(createSsrRpc("e9d36b2babf318b55e4939a654ba2a72123330fcc587fcb012e4fb25df3242c0"));
 const getPublicVideos = createServerFn({
   method: "GET"
 }).handler(createSsrRpc("133678ee27a834c5ac321a1c4f61698de355f0052f15347b7a0de3bdc3fb356c"));
@@ -134,8 +147,6 @@ const submitJobRegistration = createServerFn({
   hasJob: stringType()
 })).handler(createSsrRpc("3a115788e453c1e76663cf6fc303ef2cab2ceed28333154090a4c7914e3cbb07"));
 const ADMIN_STORAGE_KEY = "shamo-admin-user";
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
 const AdminAuthContext = reactExports.createContext(null);
 function getStoredAdminUser() {
   if (typeof window === "undefined") return null;
@@ -190,10 +201,6 @@ function useAdminAuth() {
   if (!context) throw new Error("useAdminAuth must be used within AdminAuthProvider");
   return context;
 }
-const adminCredentials = {
-  username: ADMIN_USERNAME,
-  password: ADMIN_PASSWORD
-};
 const thumbs = [
   "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80",
   "https://images.unsplash.com/photo-1556761175-5973dc0f32e7?w=800&q=80",
@@ -303,6 +310,8 @@ const emptyAdminForm = {
   descriptionEn: "",
   descriptionAm: "",
   fileName: "",
+  thumbnailFileName: "",
+  thumbnailUrl: "",
   shareTo: []
 };
 function getStatusClasses(status) {
@@ -1042,8 +1051,8 @@ function AdminLoginPage() {
   const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAdminAuth();
-  const [username, setUsername] = reactExports.useState(adminCredentials.username);
-  const [password, setPassword] = reactExports.useState(adminCredentials.password);
+  const [username, setUsername] = reactExports.useState("");
+  const [password, setPassword] = reactExports.useState("");
   const [error, setError] = reactExports.useState("");
   if (location.pathname !== "/admin") {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {});
@@ -1097,17 +1106,6 @@ function AdminLoginPage() {
         ]
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 rounded-2xl border border-border bg-muted/40 p-4 text-sm", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "font-semibold", children: "Demo credentials" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 text-muted-foreground", children: [
-        "Username: ",
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold text-foreground", children: adminCredentials.username })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-muted-foreground", children: [
-        "Password: ",
-        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold text-foreground", children: adminCredentials.password })
-      ] })
-    ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 text-center text-sm", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/", className: "font-semibold text-primary hover:underline", children: "← Back to main site" }) })
   ] }) });
 }
@@ -1268,12 +1266,16 @@ const highlights = [
   { Icon: Building2, en: "Industrial Zones", am: "ኢንዱስትሪ ዞኖች", desc_en: "Inside tours of Ethiopia's parks.", desc_am: "የኢትዮጵያ ፓርኮች ጉብኝት።" },
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" }
 ];
+function isYouTubeUrl$1(url) {
+  return !!url && /youtube\.com|youtu\.be/i.test(url);
+}
 function Home() {
   const { videos: videos2 } = Route$7.useLoaderData();
   const { lang, t } = useLang();
   const featuredVideo = videos2[0] ?? getVideo("cat_invest-0");
   const featuredVideoEmbed = featuredVideo.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   const featuredCategory = dict[featuredVideo.category] ?? { en: "Latest Video", am: "የቅርብ ቪዲዮ" };
+  const featuredUsesIframe = isYouTubeUrl$1(featuredVideoEmbed);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "relative overflow-hidden", children: [
@@ -1290,18 +1292,11 @@ function Home() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-4 max-w-xl text-base text-white/85 sm:text-lg", children: t("tagline") }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 max-w-xl text-sm text-white/70 font-ethiopic", children: lang === "en" ? dict.tagline.am : dict.tagline.en }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-7 flex flex-wrap gap-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs(
-              Link,
-              {
-                to: "/categories",
-                className: "inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg transition-transform hover:scale-[1.02]",
-                children: [
-                  t("heroCta"),
-                  " ",
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { className: "h-4 w-4" })
-                ]
-              }
-            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/categories", className: "inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg transition-transform hover:scale-[1.02]", children: [
+              t("heroCta"),
+              " ",
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { className: "h-4 w-4" })
+            ] }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs(
               Link,
               {
@@ -1322,7 +1317,7 @@ function Home() {
           ] }, s.en)) })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "aspect-video w-full bg-black", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "aspect-video w-full bg-black", children: featuredUsesIframe ? /* @__PURE__ */ jsxRuntimeExports.jsx(
             "iframe",
             {
               className: "h-full w-full",
@@ -1332,7 +1327,7 @@ function Home() {
               referrerPolicy: "strict-origin-when-cross-origin",
               allowFullScreen: true
             }
-          ) }),
+          ) : /* @__PURE__ */ jsxRuntimeExports.jsx("video", { className: "h-full w-full", src: featuredVideoEmbed, controls: true, playsInline: true, preload: "metadata" }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/90 via-black/45 to-transparent" }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute bottom-0 left-0 right-0 p-5 text-white", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-[11px] font-semibold uppercase tracking-wider text-emerald-300", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: `Featured · ${featuredCategory.en}`, am: `ተመራጭ · ${featuredCategory.am}` }) }),
@@ -1363,16 +1358,7 @@ function Home() {
         " →"
       ] })
     ] }) }),
-    categories$1.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(
-      VideoCarousel,
-      {
-        category: c,
-        titleEn: dict[c].en,
-        titleAm: dict[c].am,
-        items: videos2.filter((video) => video.category === c)
-      },
-      c
-    )),
+    categories$1.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(VideoCarousel, { category: c, titleEn: dict[c].en, titleAm: dict[c].am, items: videos2.filter((video) => video.category === c) }, c)),
     /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "mx-auto mt-20 max-w-7xl px-4 sm:px-6 lg:px-8", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative overflow-hidden rounded-3xl gradient-brand p-8 text-white sm:p-12", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center", children: [
@@ -1380,18 +1366,11 @@ function Home() {
           /* @__PURE__ */ jsxRuntimeExports.jsx("h3", { className: "text-2xl font-extrabold sm:text-3xl", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Looking for a job opportunity?", am: "የሥራ እድል እየፈለጉ ነው?" }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-white/85", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Register your profile and get matched with verified employers across Ethiopia.", am: "መገለጫዎን ያስመዝግቡ እና ከተረጋገጡ ቀጣሪዎች ጋር ይገናኙ።" }) })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Link,
-          {
-            to: "/register",
-            className: "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-primary shadow-xl transition-transform hover:scale-[1.02]",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Register for Job Opportunity", am: "ለሥራ እድል ይመዝገቡ" }),
-              " ",
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { className: "h-4 w-4" })
-            ]
-          }
-        )
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(Link, { to: "/register", className: "inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-primary shadow-xl transition-transform hover:scale-[1.02]", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Register for Job Opportunity", am: "ለሥራ እድል ይመዝገቡ" }),
+          " ",
+          /* @__PURE__ */ jsxRuntimeExports.jsx(ArrowRight, { className: "h-4 w-4" })
+        ] })
       ] })
     ] }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteFooter, {})
@@ -1399,6 +1378,9 @@ function Home() {
 }
 function getStoredCommentsKey(videoId) {
   return `shamo-video-comments:${videoId}`;
+}
+function isYouTubeUrl(url) {
+  return !!url && /youtube\.com|youtu\.be/i.test(url);
 }
 const Route$6 = createFileRoute("/video/$videoId")({
   loader: async ({ params }) => {
@@ -1431,6 +1413,8 @@ function VideoPage() {
   const related = allVideos.filter((v) => v.id !== video.id).slice(0, 8);
   const playerEmbedUrl = video.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   const topLevelComments = comments.filter((comment) => !comment.parentId);
+  const displayedLikeCount = Math.max(1, Math.round(viewCount / 12));
+  const shouldUseIframe = isYouTubeUrl(playerEmbedUrl);
   reactExports.useEffect(() => {
     if (typeof window === "undefined") return;
     const raw = window.localStorage.getItem(storageKey);
@@ -1515,7 +1499,7 @@ function VideoPage() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("main", { className: "mx-auto grid max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl", children: shouldUseIframe ? /* @__PURE__ */ jsxRuntimeExports.jsx(
           "iframe",
           {
             className: "h-full w-full",
@@ -1525,7 +1509,7 @@ function VideoPage() {
             referrerPolicy: "strict-origin-when-cross-origin",
             allowFullScreen: true
           }
-        ) }),
+        ) : /* @__PURE__ */ jsxRuntimeExports.jsx("video", { className: "h-full w-full", src: playerEmbedUrl, controls: true, playsInline: true, preload: "metadata" }) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl", children: lang === "am" ? video.titleAm : video.titleEn }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm text-muted-foreground font-ethiopic", children: lang === "am" ? video.titleEn : video.titleAm })
@@ -1547,7 +1531,7 @@ function VideoPage() {
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: `h-3.5 w-3.5 ${liked ? "fill-primary" : ""}` }),
                   " ",
-                  formatViews(viewCount / 12),
+                  formatViews(displayedLikeCount),
                   " ",
                   t("like")
                 ]
@@ -1792,7 +1776,6 @@ function useRequireAdmin() {
 const Route$5 = createFileRoute("/admin/videos")({
   component: RouteComponent$5
 });
-const statusOptions = ["Draft", "Review", "Scheduled", "Published"];
 function getCommentCount(postId) {
   const numeric = postId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
   return numeric % 24 + 3;
@@ -1811,17 +1794,15 @@ function RouteComponent$5() {
   const { posts, updatePostStatus, deletePost } = useAdminData();
   const { lang } = useLang();
   const [categoryFilter, setCategoryFilter] = reactExports.useState("all");
-  const [statusFilter, setStatusFilter] = reactExports.useState("all");
   const [expandedCommentsPostId, setExpandedCommentsPostId] = reactExports.useState(null);
   const [page, setPage] = reactExports.useState(1);
   const pageSize = 5;
   const filteredPosts = reactExports.useMemo(
     () => posts.filter((post) => {
       const categoryMatch = categoryFilter === "all" || post.category === categoryFilter;
-      const statusMatch = statusFilter === "all" || post.status === statusFilter;
-      return categoryMatch && statusMatch;
+      return categoryMatch;
     }),
-    [categoryFilter, posts, statusFilter]
+    [categoryFilter, posts]
   );
   const totalPages = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
   const paginatedPosts = filteredPosts.slice((page - 1) * pageSize, page * pageSize);
@@ -1834,16 +1815,10 @@ function RouteComponent$5() {
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Link, { to: "/admin/post", className: "rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground", children: "Add new video" })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5 grid gap-3 md:grid-cols-2", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: categoryFilter, onChange: (e) => setCategoryFilter(e.target.value), className: "h-11 rounded-xl border border-input bg-background px-3 text-sm", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "all", children: "All categories" }),
-        categories.map((category) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: category, children: dict[category].en }, category))
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: statusFilter, onChange: (e) => setStatusFilter(e.target.value), className: "h-11 rounded-xl border border-input bg-background px-3 text-sm", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "all", children: "All statuses" }),
-        statusOptions.map((status) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: status, children: status }, status))
-      ] })
-    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-5 grid gap-3 md:grid-cols-1", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { value: categoryFilter, onChange: (e) => setCategoryFilter(e.target.value), className: "h-11 rounded-xl border border-input bg-background px-3 text-sm", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "all", children: "All categories" }),
+      categories.map((category) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: category, children: dict[category].en }, category))
+    ] }) }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-3 text-xs text-muted-foreground", children: [
       "Showing ",
       (page - 1) * pageSize + 1,
@@ -1860,7 +1835,7 @@ function RouteComponent$5() {
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Views" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Comments" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Status" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Change status" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Visibility" }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 text-right", children: "Action" })
       ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: paginatedPosts.map((post) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
@@ -1889,12 +1864,12 @@ function RouteComponent$5() {
           ) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(post.status)}`, children: post.status }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-            "select",
+            "button",
             {
-              value: post.status,
-              onChange: (e) => updatePostStatus(post.id, e.target.value),
-              className: "h-9 rounded-lg border border-input bg-background px-3 text-sm",
-              children: statusOptions.map((status) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: status, children: status }, status))
+              type: "button",
+              onClick: () => updatePostStatus(post.id, post.status === "Published" ? "Draft" : "Published"),
+              className: `rounded-full px-3 py-1.5 text-xs font-semibold ${post.status === "Published" ? "border border-amber-300 bg-amber-50 text-amber-700" : "border border-emerald-300 bg-emerald-50 text-emerald-700"}`,
+              children: post.status === "Published" ? "Unpublish" : "Publish"
             }
           ) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
@@ -2150,16 +2125,107 @@ function DetailItem({ label, value }) {
 const Route$2 = createFileRoute("/admin/post")({
   component: RouteComponent$2
 });
-const platforms = ["YouTube", "Facebook", "Instagram", "TikTok"];
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      if (typeof result !== "string") {
+        reject(new Error("Failed to read file"));
+        return;
+      }
+      const base64 = result.split(",")[1];
+      if (!base64) {
+        reject(new Error("Invalid file encoding"));
+        return;
+      }
+      resolve(base64);
+    };
+    reader.onerror = () => reject(reader.error ?? new Error("Unable to read file"));
+    reader.readAsDataURL(file);
+  });
+}
 function RouteComponent$2() {
   const { isAuthenticated } = useRequireAdmin();
   const { createPost, settings } = useAdminData();
   const [form, setForm] = reactExports.useState(emptyAdminForm);
   const [feedback, setFeedback] = reactExports.useState(null);
+  const [isUploadingFile, setIsUploadingFile] = reactExports.useState(false);
+  const [isUploadingThumbnail, setIsUploadingThumbnail] = reactExports.useState(false);
+  const [videoSourceMode, setVideoSourceMode] = reactExports.useState("youtube");
   if (!isAuthenticated) return null;
-  const submitPost = (status) => {
+  const handleFileSelect = async (file) => {
+    if (!file) return;
+    setIsUploadingFile(true);
+    setFeedback(null);
+    setVideoSourceMode("upload");
+    try {
+      const base64 = await fileToBase64(file);
+      const uploaded = await uploadAdminVideoFile({
+        data: {
+          fileName: file.name,
+          contentType: file.type || "video/mp4",
+          base64
+        }
+      });
+      setForm((current) => ({
+        ...current,
+        fileName: uploaded.fileName,
+        youtubeUrl: uploaded.publicUrl
+      }));
+      setFeedback({ type: "success", message: "Video uploaded successfully. You can now publish it as a local video post." });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? `Unable to upload the selected video file: ${error.message}` : "Unable to upload the selected video file. Please try again."
+      });
+    } finally {
+      setIsUploadingFile(false);
+    }
+  };
+  const handleThumbnailSelect = async (file) => {
+    if (!file) return;
+    setIsUploadingThumbnail(true);
+    setFeedback(null);
+    try {
+      const base64 = await fileToBase64(file);
+      const uploaded = await uploadAdminThumbnailFile({
+        data: {
+          fileName: file.name,
+          contentType: file.type || "image/png",
+          base64
+        }
+      });
+      setForm((current) => ({
+        ...current,
+        thumbnailFileName: uploaded.fileName,
+        thumbnailUrl: uploaded.publicUrl
+      }));
+      setFeedback({ type: "success", message: "Thumbnail uploaded successfully for the local video post." });
+    } catch (error) {
+      setFeedback({
+        type: "error",
+        message: error instanceof Error ? `Unable to upload the selected thumbnail: ${error.message}` : "Unable to upload the selected thumbnail. Please try again."
+      });
+    } finally {
+      setIsUploadingThumbnail(false);
+    }
+  };
+  const submitPost = () => {
     void (async () => {
-      const result = await createPost(form, settings.autoPublish && status === "Published" ? "Published" : status);
+      if (videoSourceMode === "youtube" && !form.youtubeUrl.trim()) {
+        setFeedback({ type: "error", message: "Please provide a YouTube link before publishing." });
+        return;
+      }
+      if (videoSourceMode === "upload" && !form.fileName.trim()) {
+        setFeedback({ type: "error", message: "Please upload a local video file before publishing." });
+        return;
+      }
+      if (videoSourceMode === "upload" && !form.thumbnailUrl.trim()) {
+        setFeedback({ type: "error", message: "Please upload a thumbnail for the local video before publishing." });
+        return;
+      }
+      const result = await createPost(form, "Published");
       if (!result.ok) {
         setFeedback({ type: "error", message: result.message });
         return;
@@ -2174,6 +2240,35 @@ function RouteComponent$2() {
       /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: "Fill in the publishing details, then save as draft, schedule it, or publish immediately." })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-5 md:grid-cols-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-2", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-semibold", children: "Video source" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-3 flex flex-wrap gap-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                setVideoSourceMode("youtube");
+                setForm((current) => ({ ...current, fileName: "", thumbnailFileName: "", thumbnailUrl: "" }));
+              },
+              className: `rounded-full px-4 py-2 text-sm font-semibold ${videoSourceMode === "youtube" ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:bg-accent"}`,
+              children: "Use YouTube link"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: () => {
+                setVideoSourceMode("upload");
+                setForm((current) => ({ ...current, youtubeUrl: "" }));
+              },
+              className: `rounded-full px-4 py-2 text-sm font-semibold ${videoSourceMode === "upload" ? "bg-primary text-primary-foreground" : "border border-border bg-background hover:bg-accent"}`,
+              children: "Upload local video"
+            }
+          )
+        ] })
+      ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Category", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
         "select",
         {
@@ -2186,21 +2281,78 @@ function RouteComponent$2() {
           ]
         }
       ) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Uploaded file name", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
-        "input",
-        {
-          value: form.fileName,
-          onChange: (e) => setForm((current) => ({ ...current, fileName: e.target.value })),
-          placeholder: "example-video.mp4",
-          className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
-        }
-      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Uploaded file name", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            value: form.fileName,
+            onChange: (e) => setForm((current) => ({ ...current, fileName: e.target.value })),
+            placeholder: "example-video.mp4",
+            disabled: videoSourceMode !== "upload",
+            className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: `inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-semibold ${videoSourceMode !== "upload" ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-accent"}`, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "file",
+                accept: "video/mp4,video/webm,video/ogg,video/quicktime",
+                className: "hidden",
+                disabled: videoSourceMode !== "upload",
+                onChange: (e) => void handleFileSelect(e.target.files?.[0])
+              }
+            ),
+            isUploadingFile ? "Uploading video..." : "Choose local video"
+          ] }),
+          form.fileName && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-muted-foreground", children: [
+            "Selected: ",
+            form.fileName
+          ] })
+        ] })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "Thumbnail image", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "input",
+          {
+            value: form.thumbnailFileName,
+            onChange: (e) => setForm((current) => ({ ...current, thumbnailFileName: e.target.value })),
+            placeholder: "example-thumbnail.jpg",
+            disabled: videoSourceMode !== "upload",
+            className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+          }
+        ),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: `inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-semibold ${videoSourceMode !== "upload" ? "cursor-not-allowed opacity-50" : "cursor-pointer hover:bg-accent"}`, children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "file",
+                accept: "image/png,image/jpeg,image/webp",
+                className: "hidden",
+                disabled: videoSourceMode !== "upload",
+                onChange: (e) => void handleThumbnailSelect(e.target.files?.[0])
+              }
+            ),
+            isUploadingThumbnail ? "Uploading thumbnail..." : "Choose thumbnail"
+          ] }),
+          form.thumbnailFileName && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-muted-foreground", children: [
+            "Selected: ",
+            form.thumbnailFileName
+          ] })
+        ] })
+      ] }) }),
       /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "YouTube embed link", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
         "input",
         {
           value: form.youtubeUrl,
-          onChange: (e) => setForm((current) => ({ ...current, youtubeUrl: e.target.value })),
-          placeholder: "https://www.youtube.com/embed/...",
+          onChange: (e) => {
+            setVideoSourceMode("youtube");
+            setForm((current) => ({ ...current, youtubeUrl: e.target.value, fileName: "" }));
+          },
+          placeholder: "https://www.youtube.com/embed/... or uploaded video URL",
+          disabled: videoSourceMode !== "youtube",
           className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
         }
       ) }),
@@ -2246,27 +2398,7 @@ function RouteComponent$2() {
           rows: 4,
           className: "w-full rounded-xl border border-input bg-background px-3 py-3 text-sm"
         }
-      ) }) }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "md:col-span-2", children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-sm font-semibold", children: "Share to platforms" }),
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-3 flex flex-wrap gap-3", children: platforms.map((platform) => {
-          const checked = form.shareTo.includes(platform);
-          return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(
-              "input",
-              {
-                type: "checkbox",
-                checked,
-                onChange: () => setForm((current) => ({
-                  ...current,
-                  shareTo: checked ? current.shareTo.filter((item) => item !== platform) : [...current.shareTo, platform]
-                }))
-              }
-            ),
-            platform
-          ] }, platform);
-        }) })
-      ] })
+      ) }) })
     ] }),
     feedback && /* @__PURE__ */ jsxRuntimeExports.jsx(
       "div",
@@ -2275,11 +2407,7 @@ function RouteComponent$2() {
         children: feedback.message
       }
     ),
-    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 flex flex-wrap gap-3", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => submitPost("Draft"), className: "rounded-full border border-border px-5 py-2.5 text-sm font-semibold", children: "Save draft" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => submitPost("Scheduled"), className: "rounded-full border border-sky-300 bg-sky-50 px-5 py-2.5 text-sm font-semibold text-sky-700", children: "Schedule" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => submitPost("Published"), className: "rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground", children: "Publish now" })
-    ] })
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 flex flex-wrap gap-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => submitPost(), className: "rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground", children: "Publish now" }) })
   ] }) });
 }
 function Field({ label, children }) {

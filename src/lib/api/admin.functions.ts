@@ -21,11 +21,21 @@ const formSchema = z.object({
   descriptionEn: z.string(),
   descriptionAm: z.string(),
   fileName: z.string(),
+  thumbnailFileName: z.string(),
+  thumbnailUrl: z.string(),
   youtubeUrl: z.string().url(),
   shareTo: z.array(z.enum(["YouTube", "TikTok", "Instagram", "Facebook"])),
 });
 
+const uploadVideoSchema = z.object({
+  fileName: z.string().min(1),
+  contentType: z.string().min(1),
+  base64: z.string().min(1),
+});
+
 const fallbackThumb = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80";
+const adminVideoBucket = "admin-videos";
+const adminThumbnailBucket = "admin-thumbnails";
 
 function getRelativeTimeLabel(createdAt: string) {
   const createdTime = new Date(createdAt).getTime();
@@ -185,7 +195,7 @@ export const createAdminPost = createServerFn({ method: "POST" })
       id: `admin-${Date.now()}`,
       titleEn: form.titleEn,
       titleAm: form.titleAm,
-      thumb: getYouTubeThumbnail(form.youtubeUrl),
+      thumb: form.thumbnailUrl || getYouTubeThumbnail(form.youtubeUrl),
       youtubeUrl: normalizeYouTubeEmbedUrl(form.youtubeUrl),
       duration: "00:00",
       views: 0,
@@ -232,6 +242,58 @@ export const createAdminPost = createServerFn({ method: "POST" })
           : data.status === "Scheduled"
             ? "Video saved with scheduled status."
             : "Draft saved successfully.",
+    };
+  });
+
+export const uploadAdminThumbnailFile = createServerFn({ method: "POST" })
+  .validator(uploadVideoSchema)
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const safeFileName = data.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const filePath = `thumbnails/${Date.now()}-${safeFileName}`;
+    const fileBuffer = Buffer.from(data.base64, "base64");
+
+    const { error } = await supabase.storage.from(adminThumbnailBucket).upload(filePath, fileBuffer, {
+      contentType: data.contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(adminThumbnailBucket).getPublicUrl(filePath);
+
+    return {
+      fileName: data.fileName,
+      filePath,
+      publicUrl: publicUrlData.publicUrl,
+    };
+  });
+
+export const uploadAdminVideoFile = createServerFn({ method: "POST" })
+  .validator(uploadVideoSchema)
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const safeFileName = data.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+    const filePath = `uploads/${Date.now()}-${safeFileName}`;
+    const fileBuffer = Buffer.from(data.base64, "base64");
+
+    const { error } = await supabase.storage.from(adminVideoBucket).upload(filePath, fileBuffer, {
+      contentType: data.contentType,
+      upsert: false,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const { data: publicUrlData } = supabase.storage.from(adminVideoBucket).getPublicUrl(filePath);
+
+    return {
+      fileName: data.fileName,
+      filePath,
+      publicUrl: publicUrlData.publicUrl,
     };
   });
 

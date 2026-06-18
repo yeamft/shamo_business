@@ -31,17 +31,22 @@ const highlights = [
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" },
 ];
 
+function isYouTubeUrl(url?: string) {
+  return !!url && /youtube\.com|youtu\.be/i.test(url);
+}
+
 function Home() {
   const { videos } = Route.useLoaderData();
   const { lang, t } = useLang();
   const featuredVideo = videos[0] ?? getVideo("cat_invest-0");
   const featuredVideoEmbed = featuredVideo.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   const featuredCategory = dict[featuredVideo.category] ?? { en: "Latest Video", am: "የቅርብ ቪዲዮ" };
+  const featuredUsesIframe = isYouTubeUrl(featuredVideoEmbed);
+
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
 
-      {/* Hero */}
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 gradient-hero" />
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,oklch(0.7_0.18_180/0.25),transparent_50%),radial-gradient(circle_at_80%_60%,oklch(0.6_0.2_150/0.3),transparent_60%)]" />
@@ -55,17 +60,10 @@ function Home() {
             <h1 className="mt-4 text-4xl font-extrabold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
               <Bi en="Ethiopia's Business Video Portal" am="የኢትዮጵያ የቢዝነስ ቪዲዮ ፖርታል" />
             </h1>
-            <p className="mt-4 max-w-xl text-base text-white/85 sm:text-lg">
-              {t("tagline")}
-            </p>
-            <p className="mt-2 max-w-xl text-sm text-white/70 font-ethiopic">
-              {lang === "en" ? dict.tagline.am : dict.tagline.en}
-            </p>
+            <p className="mt-4 max-w-xl text-base text-white/85 sm:text-lg">{t("tagline")}</p>
+            <p className="mt-2 max-w-xl text-sm text-white/70 font-ethiopic">{lang === "en" ? dict.tagline.am : dict.tagline.en}</p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                to="/categories"
-                className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg transition-transform hover:scale-[1.02]"
-              >
+              <Link to="/categories" className="inline-flex items-center gap-2 rounded-full bg-white px-5 py-3 text-sm font-semibold text-primary shadow-lg transition-transform hover:scale-[1.02]">
                 {t("heroCta")} <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -87,27 +85,28 @@ function Home() {
             </dl>
           </div>
 
-          {/* Featured video card */}
           <div className="relative">
             <div className="relative overflow-hidden rounded-2xl border border-white/20 bg-black shadow-2xl">
               <div className="aspect-video w-full bg-black">
-                <iframe
-                  className="h-full w-full"
-                  src={featuredVideoEmbed}
-                  title={lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  referrerPolicy="strict-origin-when-cross-origin"
-                  allowFullScreen
-                />
+                {featuredUsesIframe ? (
+                  <iframe
+                    className="h-full w-full"
+                    src={featuredVideoEmbed}
+                    title={lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                    allowFullScreen
+                  />
+                ) : (
+                  <video className="h-full w-full" src={featuredVideoEmbed} controls playsInline preload="metadata" />
+                )}
               </div>
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300">
                   <Bi en={`Featured · ${featuredCategory.en}`} am={`ተመራጭ · ${featuredCategory.am}`} />
                 </div>
-                <h3 className="mt-1 text-lg font-bold leading-tight">
-                  {lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}
-                </h3>
+                <h3 className="mt-1 text-lg font-bold leading-tight">{lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}</h3>
                 <div className="mt-2 text-xs text-white/80">{(featuredVideo.views / 1000).toFixed(1)}K {t("views")} · {featuredVideo.duration}</div>
               </div>
             </div>
@@ -115,7 +114,6 @@ function Home() {
         </div>
       </section>
 
-      {/* Highlights */}
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {highlights.map(({ Icon, en, am, desc_en, desc_am }) => (
@@ -130,14 +128,11 @@ function Home() {
         </div>
       </section>
 
-      {/* Recently posted section header */}
       <section className="mx-auto max-w-7xl px-4 pt-4 sm:px-6 lg:px-8">
         <div className="flex items-end justify-between gap-4 border-b border-border pb-3">
           <div>
             <h2 className="text-2xl font-extrabold tracking-tight">{t("recently")}</h2>
-            <p className="text-sm text-muted-foreground font-ethiopic">
-              {lang === "en" ? dict.recently.am : dict.recently.en}
-            </p>
+            <p className="text-sm text-muted-foreground font-ethiopic">{lang === "en" ? dict.recently.am : dict.recently.en}</p>
           </div>
           <Link to="/categories" className="text-sm font-semibold text-primary hover:underline">
             {t("viewMore")} →
@@ -145,34 +140,21 @@ function Home() {
         </div>
       </section>
 
-      {/* Carousels */}
       {categories.map((c) => (
-        <VideoCarousel
-          key={c}
-          category={c}
-          titleEn={dict[c].en}
-          titleAm={dict[c].am}
-          items={videos.filter((video) => video.category === c)}
-        />
+        <VideoCarousel key={c} category={c} titleEn={dict[c].en} titleAm={dict[c].am} items={videos.filter((video) => video.category === c)} />
       ))}
 
-      {/* CTA */}
       <section className="mx-auto mt-20 max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="relative overflow-hidden rounded-3xl gradient-brand p-8 text-white sm:p-12">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" />
           <div className="relative grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center">
             <div>
-              <h3 className="text-2xl font-extrabold sm:text-3xl">
-                <Bi en="Looking for a job opportunity?" am="የሥራ እድል እየፈለጉ ነው?" />
-              </h3>
+              <h3 className="text-2xl font-extrabold sm:text-3xl"><Bi en="Looking for a job opportunity?" am="የሥራ እድል እየፈለጉ ነው?" /></h3>
               <p className="mt-2 text-white/85">
                 <Bi en="Register your profile and get matched with verified employers across Ethiopia." am="መገለጫዎን ያስመዝግቡ እና ከተረጋገጡ ቀጣሪዎች ጋር ይገናኙ።" />
               </p>
             </div>
-            <Link
-              to="/register"
-              className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-primary shadow-xl transition-transform hover:scale-[1.02]"
-            >
+            <Link to="/register" className="inline-flex h-12 items-center justify-center gap-2 rounded-full bg-white px-6 text-sm font-bold text-primary shadow-xl transition-transform hover:scale-[1.02]">
               <Bi en="Register for Job Opportunity" am="ለሥራ እድል ይመዝገቡ" /> <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

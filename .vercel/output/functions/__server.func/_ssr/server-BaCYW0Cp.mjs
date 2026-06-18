@@ -81,7 +81,7 @@ function getResponse() {
 }
 var HEADERS = { TSS_SHELL: "X-TSS_SHELL" };
 async function getStartManifest(matchedRoutes) {
-  const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-W-hsQsMi.mjs");
+  const { tsrStartManifest } = await import("../_tanstack-start-manifest_v-DC5SXf-I.mjs");
   const startManifest = tsrStartManifest();
   let routes = startManifest.routes;
   routes[rootRouteId];
@@ -103,59 +103,67 @@ async function getStartManifest(matchedRoutes) {
 const manifest = {
   "0605ecdb5dd3d1f4e0199b45346d5f51b3a175edc153ef446b6fd8b2e5ad3197": {
     functionName: "markAdminRegistrationReviewed_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "133678ee27a834c5ac321a1c4f61698de355f0052f15347b7a0de3bdc3fb356c": {
     functionName: "getPublicVideos_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "3a115788e453c1e76663cf6fc303ef2cab2ceed28333154090a4c7914e3cbb07": {
     functionName: "submitJobRegistration_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "40b285feb05234d3b74af6cd7924471cda6a37a582710f2fbf5eeff7f4bf9979": {
     functionName: "likeVideoComment_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "486835fefadcd7dc9cbc31c28ef0af78dc9582f018ec6de8c6f2171f69d48d22": {
     functionName: "updateAdminPostStatus_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "512cce003a8035bb33f8499c0212a28304c8a716dbed15b398ef1aefedb50cc3": {
     functionName: "createAdminPost_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "87a8b613d9331885fd0c2a55c5ac45bcf26e714107d7c799146eb7a9ec1d4e9b": {
     functionName: "incrementVideoViews_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "8fb8ec4362f7c28347f92ba88a52775702ae0a9b0477ea9a9c5486a73b41998f": {
     functionName: "getVideoComments_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "96403100c70d80ecc2c543c699a80ca2f38c212b339efbd0656d8bcc44a43b1b": {
     functionName: "getPublicVideoById_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
+  },
+  "a974ebd9332e33cd4e59ff97da2ce715b9c7f4d743895a1ca241f0f38a46fc5c": {
+    functionName: "uploadAdminThumbnailFile_createServerFn_handler",
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "c9ff09fb61254dc405f83219dbf36b90d7f1b262c39e4af58b715041fb0a761c": {
     functionName: "adminLogin_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "cdd9242e4096d708b2a33b6a8dc518d7fc75dcea41d8339e7451b0321cff3c83": {
     functionName: "deleteAdminPost_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "d024c498ee47219bf19540338aeff4e41e5e62961925cb3aa80897dfc15e25bc": {
     functionName: "getAdminSnapshot_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "dd60a78cadd3914acc296c74f428482695438f71f6339119b48711447f42defb": {
     functionName: "saveAdminSettings_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
+  },
+  "e9d36b2babf318b55e4939a654ba2a72123330fcc587fcb012e4fb25df3242c0": {
+    functionName: "uploadAdminVideoFile_createServerFn_handler",
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   },
   "f0a188d77d6db038f1c86f50937f926f5cd14734a018a8390ba00231fe537a87": {
     functionName: "createVideoComment_createServerFn_handler",
-    importer: () => import("./admin.functions-BrQsNM0I.mjs")
+    importer: () => import("./admin.functions-CtaVLqt5.mjs")
   }
 };
 async function getServerFnById(id, access) {
@@ -1395,8 +1403,8 @@ var getBaseManifest = getProdBaseManifest;
 var createEarlyHintsForRequest = createEarlyHintsCollector;
 async function loadEntries() {
   const [routerEntry, startEntry, pluginAdapters] = await Promise.all([
-    import("./router-DoE1lgRU.mjs"),
-    import("./start-DRYLEoGn.mjs"),
+    import("./router-BoLo9Gqu.mjs"),
+    import("./start-DcXtb9EU.mjs"),
     import("./empty-plugin-adapters-BFgPZ6_d.mjs")
   ]);
   return {

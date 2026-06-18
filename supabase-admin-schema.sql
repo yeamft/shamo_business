@@ -63,6 +63,14 @@ insert into public.admin_settings (id, site_title, support_email, default_langua
 values (1, 'Shamo Business Portal', 'admin@shamobusiness.com', 'en', false, true)
 on conflict (id) do nothing;
 
+insert into storage.buckets (id, name, public)
+values ('admin-videos', 'admin-videos', true)
+on conflict (id) do nothing;
+
+insert into storage.buckets (id, name, public)
+values ('admin-thumbnails', 'admin-thumbnails', true)
+on conflict (id) do nothing;
+
 alter table public.admin_videos enable row level security;
 alter table public.job_registrations enable row level security;
 alter table public.admin_settings enable row level security;
@@ -116,3 +124,23 @@ create policy "service role full video_comments"
 on public.video_comments for all
 using (auth.role() = 'service_role')
 with check (auth.role() = 'service_role');
+
+drop policy if exists "public read admin-videos" on storage.objects;
+create policy "public read admin-videos"
+on storage.objects for select
+using (bucket_id = 'admin-videos');
+
+drop policy if exists "service role upload admin-videos" on storage.objects;
+create policy "service role upload admin-videos"
+on storage.objects for insert
+with check (bucket_id = 'admin-videos' and auth.role() = 'service_role');
+
+drop policy if exists "public read admin-thumbnails" on storage.objects;
+create policy "public read admin-thumbnails"
+on storage.objects for select
+using (bucket_id = 'admin-thumbnails');
+
+drop policy if exists "service role upload admin-thumbnails" on storage.objects;
+create policy "service role upload admin-thumbnails"
+on storage.objects for insert
+with check (bucket_id = 'admin-thumbnails' and auth.role() = 'service_role');

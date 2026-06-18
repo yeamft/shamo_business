@@ -1,4 +1,4 @@
-import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-La95DZ7K.mjs";
+import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-BaCYW0Cp.mjs";
 import { S as Socket, P as Presence } from "../_libs/supabase__phoenix.mjs";
 import { I as IcebergRestCatalog } from "../_libs/iceberg-js.mjs";
 import "../_libs/seroval.mjs";
@@ -19258,10 +19258,19 @@ const formSchema = objectType({
   descriptionEn: stringType(),
   descriptionAm: stringType(),
   fileName: stringType(),
+  thumbnailFileName: stringType(),
+  thumbnailUrl: stringType(),
   youtubeUrl: stringType().url(),
   shareTo: arrayType(enumType(["YouTube", "TikTok", "Instagram", "Facebook"]))
 });
+const uploadVideoSchema = objectType({
+  fileName: stringType().min(1),
+  contentType: stringType().min(1),
+  base64: stringType().min(1)
+});
 const fallbackThumb = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80";
+const adminVideoBucket = "admin-videos";
+const adminThumbnailBucket = "admin-thumbnails";
 function getRelativeTimeLabel(createdAt) {
   const createdTime = new Date(createdAt).getTime();
   const now = Date.now();
@@ -19435,7 +19444,7 @@ const createAdminPost = createServerFn({
     id: `admin-${Date.now()}`,
     titleEn: form.titleEn,
     titleAm: form.titleAm,
-    thumb: getYouTubeThumbnail(form.youtubeUrl),
+    thumb: form.thumbnailUrl || getYouTubeThumbnail(form.youtubeUrl),
     youtubeUrl: normalizeYouTubeEmbedUrl(form.youtubeUrl),
     duration: "00:00",
     views: 0,
@@ -19475,6 +19484,70 @@ const createAdminPost = createServerFn({
     ok: true,
     post: newPost,
     message: data.status === "Published" ? "Video posted successfully and added to the recent posts table." : data.status === "Scheduled" ? "Video saved with scheduled status." : "Draft saved successfully."
+  };
+});
+const uploadAdminThumbnailFile_createServerFn_handler = createServerRpc({
+  id: "a974ebd9332e33cd4e59ff97da2ce715b9c7f4d743895a1ca241f0f38a46fc5c",
+  name: "uploadAdminThumbnailFile",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => uploadAdminThumbnailFile.__executeServer(opts));
+const uploadAdminThumbnailFile = createServerFn({
+  method: "POST"
+}).validator(uploadVideoSchema).handler(uploadAdminThumbnailFile_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const safeFileName = data.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const filePath = `thumbnails/${Date.now()}-${safeFileName}`;
+  const fileBuffer = Buffer.from(data.base64, "base64");
+  const {
+    error
+  } = await supabase.storage.from(adminThumbnailBucket).upload(filePath, fileBuffer, {
+    contentType: data.contentType,
+    upsert: false
+  });
+  if (error) {
+    throw error;
+  }
+  const {
+    data: publicUrlData
+  } = supabase.storage.from(adminThumbnailBucket).getPublicUrl(filePath);
+  return {
+    fileName: data.fileName,
+    filePath,
+    publicUrl: publicUrlData.publicUrl
+  };
+});
+const uploadAdminVideoFile_createServerFn_handler = createServerRpc({
+  id: "e9d36b2babf318b55e4939a654ba2a72123330fcc587fcb012e4fb25df3242c0",
+  name: "uploadAdminVideoFile",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => uploadAdminVideoFile.__executeServer(opts));
+const uploadAdminVideoFile = createServerFn({
+  method: "POST"
+}).validator(uploadVideoSchema).handler(uploadAdminVideoFile_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const safeFileName = data.fileName.replace(/[^a-zA-Z0-9._-]/g, "-");
+  const filePath = `uploads/${Date.now()}-${safeFileName}`;
+  const fileBuffer = Buffer.from(data.base64, "base64");
+  const {
+    error
+  } = await supabase.storage.from(adminVideoBucket).upload(filePath, fileBuffer, {
+    contentType: data.contentType,
+    upsert: false
+  });
+  if (error) {
+    throw error;
+  }
+  const {
+    data: publicUrlData
+  } = supabase.storage.from(adminVideoBucket).getPublicUrl(filePath);
+  return {
+    fileName: data.fileName,
+    filePath,
+    publicUrl: publicUrlData.publicUrl
   };
 });
 const getPublicVideos_createServerFn_handler = createServerRpc({
@@ -19774,5 +19847,7 @@ export {
   markAdminRegistrationReviewed_createServerFn_handler,
   saveAdminSettings_createServerFn_handler,
   submitJobRegistration_createServerFn_handler,
-  updateAdminPostStatus_createServerFn_handler
+  updateAdminPostStatus_createServerFn_handler,
+  uploadAdminThumbnailFile_createServerFn_handler,
+  uploadAdminVideoFile_createServerFn_handler
 };

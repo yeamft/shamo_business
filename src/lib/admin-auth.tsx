@@ -16,8 +16,8 @@ type AdminAuthContextValue = {
 };
 
 const ADMIN_STORAGE_KEY = "shamo-admin-user";
-const ADMIN_USERNAME = "admin";
-const ADMIN_PASSWORD = "admin123";
+const ADMIN_USERNAME = "shamo_admin_portal";
+const ADMIN_PASSWORD = "Shamo@2026#Secure!Portal";
 
 const AdminAuthContext = createContext<AdminAuthContextValue | null>(null);
 

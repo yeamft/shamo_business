@@ -12,6 +12,10 @@ function getStoredCommentsKey(videoId: string) {
   return `shamo-video-comments:${videoId}`;
 }
 
+function isYouTubeUrl(url?: string) {
+  return !!url && /youtube\.com|youtu\.be/i.test(url);
+}
+
 export const Route = createFileRoute("/video/$videoId")({
   loader: async ({ params }) => {
     const v = (await getPublicVideoById({ data: { id: params.videoId } })) ?? getVideo(params.videoId);
@@ -48,6 +52,7 @@ function VideoPage() {
   const playerEmbedUrl = video.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   const topLevelComments = comments.filter((comment) => !comment.parentId);
   const displayedLikeCount = Math.max(1, Math.round(viewCount / 12));
+  const shouldUseIframe = isYouTubeUrl(playerEmbedUrl);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -154,14 +159,18 @@ function VideoPage() {
         <div>
           {/* Player */}
           <div className="relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl">
-            <iframe
-              className="h-full w-full"
-              src={playerEmbedUrl}
-              title={lang === "am" ? video.titleAm : video.titleEn}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-              referrerPolicy="strict-origin-when-cross-origin"
-              allowFullScreen
-            />
+            {shouldUseIframe ? (
+              <iframe
+                className="h-full w-full"
+                src={playerEmbedUrl}
+                title={lang === "am" ? video.titleAm : video.titleEn}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerPolicy="strict-origin-when-cross-origin"
+                allowFullScreen
+              />
+            ) : (
+              <video className="h-full w-full" src={playerEmbedUrl} controls playsInline preload="metadata" />
+            )}
           </div>
 
           {/* Title */}

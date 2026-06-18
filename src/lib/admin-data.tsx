@@ -22,6 +22,8 @@ export type FormState = {
   descriptionEn: string;
   descriptionAm: string;
   fileName: string;
+  thumbnailFileName: string;
+  thumbnailUrl: string;
   youtubeUrl: string;
   shareTo: SocialPlatform[];
 };
@@ -92,6 +94,8 @@ export const emptyAdminForm: FormState = {
   descriptionEn: "",
   descriptionAm: "",
   fileName: "",
+  thumbnailFileName: "",
+  thumbnailUrl: "",
   shareTo: [],
 };
 
