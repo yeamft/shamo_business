@@ -21,17 +21,18 @@ function RouteComponent() {
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   if (!isAuthenticated) return null;
-
   const submitPost = (status: PostStatus) => {
-    const result = createPost(form, settings.autoPublish && status === "Published" ? "Published" : status);
+    void (async () => {
+      const result = await createPost(form, settings.autoPublish && status === "Published" ? "Published" : status);
 
-    if (!result.ok) {
-      setFeedback({ type: "error", message: result.message });
-      return;
-    }
+      if (!result.ok) {
+        setFeedback({ type: "error", message: result.message });
+        return;
+      }
 
-    setFeedback({ type: "success", message: result.message });
-    setForm({ ...emptyAdminForm });
+      setFeedback({ type: "success", message: result.message });
+      setForm({ ...emptyAdminForm });
+    })();
   };
 
   return (

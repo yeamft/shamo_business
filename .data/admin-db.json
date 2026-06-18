@@ -1,6 +1,27 @@
 {
   "posts": [
     {
+      "id": "admin-1781784464415",
+      "titleEn": "test",
+      "titleAm": "test",
+      "thumb": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80",
+      "duration": "00:00",
+      "views": 0,
+      "channel": "Shamo Admin",
+      "channelAm": "ሻሞ አስተዳዳሪ",
+      "category": "cat_opp",
+      "postedDays": 0,
+      "status": "Review",
+      "createdAtLabel": "Just now",
+      "keywords": "coffee",
+      "descriptionEn": "test ",
+      "descriptionAm": "test",
+      "shareTo": [
+        "YouTube"
+      ],
+      "source": "admin"
+    },
+    {
       "titleEn": "Coffee Export Opportunities in 2026",
       "titleAm": "የቡና ኤክስፖርት እድሎች በ2026",
       "duration": "12:45",

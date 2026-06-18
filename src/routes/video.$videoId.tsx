@@ -2,7 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { Bi, useLang } from "@/lib/i18n";
 import { getVideo, videos, formatViews } from "@/lib/videos";
-import { ThumbsUp, Share2, Download, BellRing, Eye, ExternalLink, Send, Play } from "lucide-react";
+import { ThumbsUp, Eye, Send, Play } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/video/$videoId")({
@@ -31,9 +31,9 @@ function VideoPage() {
   const { video } = Route.useLoaderData();
   const { lang, t } = useLang();
   const [liked, setLiked] = useState(false);
-  const [subscribed, setSubscribed] = useState(false);
 
   const related = videos.filter((v) => v.id !== video.id).slice(0, 8);
+  const playerEmbedUrl = "https://www.youtube.com/embed/NMYWBOTeg1I";
 
   return (
     <div className="min-h-screen bg-background">
@@ -42,26 +42,14 @@ function VideoPage() {
         <div>
           {/* Player */}
           <div className="relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl">
-            <img src={video.thumb} alt="" className="h-full w-full object-cover opacity-80" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" />
-            <button className="absolute inset-0 grid place-items-center">
-              <span className="grid h-20 w-20 place-items-center rounded-full bg-white/95 shadow-2xl transition-transform hover:scale-110">
-                <Play className="h-9 w-9 translate-x-1 fill-primary text-primary" />
-              </span>
-            </button>
-            {/* Fake controls */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
-              <div className="h-1 w-full rounded-full bg-white/30">
-                <div className="h-full w-1/3 rounded-full bg-primary" />
-              </div>
-              <div className="mt-2 flex items-center justify-between text-xs text-white">
-                <span>04:12 / {video.duration}</span>
-                <span className="flex items-center gap-3">
-                  <span>HD</span>
-                  <span>1x</span>
-                </span>
-              </div>
-            </div>
+            <iframe
+              className="h-full w-full"
+              src={playerEmbedUrl}
+              title={lang === "am" ? video.titleAm : video.titleEn}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
           </div>
 
           {/* Title */}
@@ -84,17 +72,6 @@ function VideoPage() {
                 <div className="truncate text-sm font-semibold">{lang === "am" ? video.channelAm : video.channel}</div>
                 <div className="text-xs text-muted-foreground"><Bi en="124K subscribers" am="124ሺ ተመዝጋቢዎች" /></div>
               </div>
-              <button
-                onClick={() => setSubscribed((s) => !s)}
-                className={`ml-2 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${
-                  subscribed
-                    ? "border border-border bg-secondary text-foreground"
-                    : "bg-foreground text-background hover:bg-foreground/90"
-                }`}
-              >
-                <BellRing className="mr-1 inline h-3.5 w-3.5" />
-                {subscribed ? <Bi en="Subscribed" am="ተመዝግቧል" /> : t("subscribe")}
-              </button>
             </div>
 
             <div className="col-span-2 flex flex-wrap items-center gap-2 sm:col-auto">
@@ -110,26 +87,8 @@ function VideoPage() {
                   <Eye className="h-3.5 w-3.5" /> {formatViews(video.views)} {t("views")}
                 </span>
               </div>
-              <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-accent">
-                <Share2 className="h-3.5 w-3.5" /> {t("share")}
-              </button>
-              <button className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-accent">
-                <Download className="h-3.5 w-3.5" /> {t("download")}
-              </button>
             </div>
           </div>
-
-          {/* Registration link banner */}
-          <Link
-            to="/register"
-            className="mt-5 flex items-center gap-3 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success hover:bg-success/15"
-          >
-            <ExternalLink className="h-4 w-4" />
-            <span className="flex-1">{t("regLink")}</span>
-            <span className="rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground">
-              <Bi en="Register" am="ይመዝገቡ" />
-            </span>
-          </Link>
 
           {/* Description */}
           <div className="mt-5 rounded-xl border border-border bg-card p-4">
