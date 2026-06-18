@@ -22,15 +22,25 @@ export type FormState = {
   descriptionEn: string;
   descriptionAm: string;
   fileName: string;
+  youtubeUrl: string;
   shareTo: SocialPlatform[];
 };
 
 export type RegistrationRecord = {
   id: string;
   name: string;
+  firstName?: string;
+  lastName?: string;
+  gender?: string;
+  age?: number;
+  lastWorkedIn?: string;
   profession: string;
   phone: string;
+  mobile1?: string;
+  mobile2?: string;
   subCity: string;
+  hasJob?: string;
+  createdAt?: string;
   status: "New" | "Reviewed";
 };
 
@@ -78,6 +88,7 @@ export const emptyAdminForm: FormState = {
   titleEn: "",
   titleAm: "",
   keywords: "",
+  youtubeUrl: "",
   descriptionEn: "",
   descriptionAm: "",
   fileName: "",

@@ -5,6 +5,7 @@ export type Video = {
   titleEn: string;
   titleAm: string;
   thumb: string;
+  youtubeUrl?: string;
   duration: string;
   views: number;
   channel: string;

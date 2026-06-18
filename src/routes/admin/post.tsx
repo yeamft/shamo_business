@@ -70,6 +70,15 @@ function RouteComponent() {
             />
           </Field>
 
+          <Field label="YouTube embed link">
+            <input
+              value={form.youtubeUrl}
+              onChange={(e) => setForm((current) => ({ ...current, youtubeUrl: e.target.value }))}
+              placeholder="https://www.youtube.com/embed/..."
+              className="h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+            />
+          </Field>
+
           <Field label="English title">
             <input
               value={form.titleEn}

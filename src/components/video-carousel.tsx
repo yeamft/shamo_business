@@ -53,9 +53,9 @@ function VideoCard({ v }: { v: Video }) {
   );
 }
 
-export function VideoCarousel({ category, titleEn, titleAm }: { category: DictKey; titleEn: string; titleAm: string }) {
+export function VideoCarousel({ category, titleEn, titleAm, items }: { category: DictKey; titleEn: string; titleAm: string; items?: Video[] }) {
   const ref = useRef<HTMLDivElement>(null);
-  const items = getByCategory(category);
+  const resolvedItems = items ?? getByCategory(category);
 
   const scroll = (dir: 1 | -1) => {
     ref.current?.scrollBy({ left: dir * 600, behavior: "smooth" });
@@ -96,7 +96,7 @@ export function VideoCarousel({ category, titleEn, titleAm }: { category: DictKe
         ref={ref}
         className="mt-4 flex gap-4 overflow-x-auto scroll-smooth px-4 pb-3 sm:px-6 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
-        {items.map((v) => (
+        {resolvedItems.map((v) => (
           <VideoCard key={v.id} v={v} />
         ))}
       </div>

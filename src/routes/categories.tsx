@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { getPublicVideos } from "@/lib/api/admin.functions";
 import { Bi, useLang, dict } from "@/lib/i18n";
-import { categories, getByCategory, formatViews } from "@/lib/videos";
+import { categories, formatViews } from "@/lib/videos";
 import { Eye, Play } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/categories")({
+  loader: async () => ({ videos: await getPublicVideos() }),
   head: () => ({
     meta: [
       { title: "Categories · ምድቦች — Shamo Business Portal" },
@@ -16,9 +18,10 @@ export const Route = createFileRoute("/categories")({
 });
 
 function Categories() {
+  const { videos } = Route.useLoaderData();
   const { lang } = useLang();
   const [active, setActive] = useState<(typeof categories)[number] | "all">("all");
-  const list = active === "all" ? categories.flatMap(getByCategory) : getByCategory(active);
+  const list = active === "all" ? videos : videos.filter((video) => video.category === active);
 
   return (
     <div className="min-h-screen bg-background">

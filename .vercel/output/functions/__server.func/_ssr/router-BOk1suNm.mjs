@@ -1,9 +1,12 @@
 import { Q as QueryClient } from "../_libs/tanstack__query-core.mjs";
 import { Q as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { c as createRouter, a as createRootRouteWithContext, u as useRouter, L as Link, O as Outlet, H as HeadContent, S as Scripts, b as createFileRoute, d as useNavigate, e as useLocation } from "../_libs/tanstack__react-router.mjs";
-import { P as notFound } from "../_libs/tanstack__router-core.mjs";
+import { Q as notFound } from "../_libs/tanstack__router-core.mjs";
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { P as Play, B as BellRing, T as ThumbsUp, E as Eye, S as Share2, D as Download, a as ExternalLink, b as Send, C as CircleCheck, c as Briefcase, M as MapPin, d as Phone, e as Mail, f as Target, H as Heart, A as ArrowRight, g as TrendingUp, L as Lightbulb, h as Building2, i as Search, G as Globe, X, j as Menu, k as ShieldCheck, l as LockKeyhole, m as Trash2, F as FileText, n as Clock3, o as FolderKanban, U as Users, p as ChartColumn, q as ChevronLeft, r as ChevronRight, s as LayoutDashboard, V as Video, t as Upload, u as Settings, v as LogOut, w as Bell } from "../_libs/lucide-react.mjs";
+import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-D_-jyPMz.mjs";
+import "../_libs/seroval.mjs";
+import { T as ThumbsUp, E as Eye, S as Send, C as CircleCheck, B as Briefcase, M as MapPin, P as Phone, a as Mail, b as Play, c as Target, H as Heart, A as ArrowRight, d as TrendingUp, L as Lightbulb, e as Building2, f as Search, G as Globe, X, g as Menu, h as ShieldCheck, i as LockKeyhole, j as MessageSquareMore, k as Trash2, F as FileText, l as Clock3, m as FolderKanban, U as Users, n as ChartColumn, o as ChevronLeft, p as ChevronRight, q as LayoutDashboard, V as Video, r as Upload, s as Settings, t as LogOut, u as Bell } from "../_libs/lucide-react.mjs";
+import { o as objectType, s as stringType, e as enumType, n as numberType, b as booleanType, a as arrayType } from "../_libs/zod.mjs";
 import "../_libs/react-dom.mjs";
 import "util";
 import "crypto";
@@ -13,10 +16,100 @@ import "node:stream";
 import "../_libs/isbot.mjs";
 import "../_libs/tanstack__history.mjs";
 import "../_libs/cookie-es.mjs";
-import "../_libs/seroval.mjs";
 import "../_libs/seroval-plugins.mjs";
 import "node:stream/web";
-const appCss = "/assets/styles-DPS-w2r0.css";
+import "node:async_hooks";
+import "../_libs/h3-v2.mjs";
+import "../_libs/rou3.mjs";
+import "../_libs/srvx.mjs";
+const appCss = "/assets/styles-CGGo04lT.css";
+var createSsrRpc = (functionId) => {
+  const url = "/_serverFn/" + functionId;
+  const serverFnMeta = { id: functionId };
+  const fn = async (...args) => {
+    return (await getServerFnById(functionId))(...args);
+  };
+  return Object.assign(fn, {
+    url,
+    serverFnMeta,
+    [TSS_SERVER_FUNCTION]: true
+  });
+};
+const settingsSchema = objectType({
+  siteTitle: stringType().min(1),
+  supportEmail: stringType().email(),
+  defaultLanguage: enumType(["en", "am"]),
+  autoPublish: booleanType(),
+  notifyOnRegistration: booleanType()
+});
+const formSchema = objectType({
+  category: stringType().min(1),
+  titleEn: stringType().min(1),
+  titleAm: stringType().min(1),
+  keywords: stringType(),
+  descriptionEn: stringType(),
+  descriptionAm: stringType(),
+  fileName: stringType(),
+  youtubeUrl: stringType().url(),
+  shareTo: arrayType(enumType(["YouTube", "TikTok", "Instagram", "Facebook"]))
+});
+const adminLogin = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  username: stringType(),
+  password: stringType()
+})).handler(createSsrRpc("c9ff09fb61254dc405f83219dbf36b90d7f1b262c39e4af58b715041fb0a761c"));
+const getAdminSnapshot = createServerFn({
+  method: "GET"
+}).handler(createSsrRpc("d024c498ee47219bf19540338aeff4e41e5e62961925cb3aa80897dfc15e25bc"));
+const createAdminPost = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  form: formSchema,
+  status: enumType(["Draft", "Published", "Scheduled", "Review"])
+})).handler(createSsrRpc("512cce003a8035bb33f8499c0212a28304c8a716dbed15b398ef1aefedb50cc3"));
+const getPublicVideos = createServerFn({
+  method: "GET"
+}).handler(createSsrRpc("133678ee27a834c5ac321a1c4f61698de355f0052f15347b7a0de3bdc3fb356c"));
+const getPublicVideoById = createServerFn({
+  method: "GET"
+}).validator(objectType({
+  id: stringType()
+})).handler(createSsrRpc("96403100c70d80ecc2c543c699a80ca2f38c212b339efbd0656d8bcc44a43b1b"));
+const updateAdminPostStatus = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  postId: stringType(),
+  status: enumType(["Draft", "Published", "Scheduled", "Review"])
+})).handler(createSsrRpc("486835fefadcd7dc9cbc31c28ef0af78dc9582f018ec6de8c6f2171f69d48d22"));
+const deleteAdminPost = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  postId: stringType()
+})).handler(createSsrRpc("cdd9242e4096d708b2a33b6a8dc518d7fc75dcea41d8339e7451b0321cff3c83"));
+const markAdminRegistrationReviewed = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  registrationId: stringType()
+})).handler(createSsrRpc("0605ecdb5dd3d1f4e0199b45346d5f51b3a175edc153ef446b6fd8b2e5ad3197"));
+const saveAdminSettings = createServerFn({
+  method: "POST"
+}).validator(settingsSchema).handler(createSsrRpc("dd60a78cadd3914acc296c74f428482695438f71f6339119b48711447f42defb"));
+const submitJobRegistration = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  id: stringType(),
+  firstName: stringType(),
+  lastName: stringType(),
+  gender: stringType(),
+  age: numberType(),
+  lastWorkedIn: stringType(),
+  profession: stringType(),
+  subCity: stringType(),
+  mobile1: stringType(),
+  mobile2: stringType(),
+  hasJob: stringType()
+})).handler(createSsrRpc("3a115788e453c1e76663cf6fc303ef2cab2ceed28333154090a4c7914e3cbb07"));
 const ADMIN_STORAGE_KEY = "shamo-admin-user";
 const ADMIN_USERNAME = "admin";
 const ADMIN_PASSWORD = "admin123";
@@ -45,11 +138,12 @@ function AdminAuthProvider({ children }) {
       user,
       isReady,
       isAuthenticated: !!user,
-      login: (username, password) => {
-        if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
-          return { ok: false, message: "Invalid username or password." };
+      login: async (username, password) => {
+        const result = await adminLogin({ data: { username, password } });
+        if (!result.ok) {
+          return { ok: false, message: result.message };
         }
-        const nextUser = { username, displayName: "Admin User" };
+        const nextUser = result.user;
         setUser(nextUser);
         setIsReady(true);
         if (typeof window !== "undefined") {
@@ -166,22 +260,7 @@ const getVideo = (id) => videos.find((v) => v.id === id) ?? videos[0];
 const getByCategory = (cat) => videos.filter((v) => v.category === cat);
 const formatViews = (n) => n >= 1e6 ? `${(n / 1e6).toFixed(1)}M` : n >= 1e3 ? `${(n / 1e3).toFixed(1)}K` : `${n}`;
 const videoCategories = ["cat_opp", "cat_idea", "cat_sol", "cat_invest", "cat_zones", "cat_orgs"];
-const ADMIN_POSTS_KEY = "shamo-admin-posts";
-const ADMIN_REGISTRATIONS_KEY = "shamo-admin-registrations";
-const ADMIN_SETTINGS_KEY = "shamo-admin-settings";
 const AdminDataContext = reactExports.createContext(null);
-const defaultRegistrations = [
-  { id: "SBP-100204", name: "Abebe Kebede", profession: "Sales Officer", phone: "+251911000001", subCity: "Bole", status: "New" },
-  { id: "SBP-100205", name: "Selam Tesfaye", profession: "Accountant", phone: "+251911000002", subCity: "Yeka", status: "Reviewed" },
-  { id: "SBP-100206", name: "Hanna Alemu", profession: "Project Coordinator", phone: "+251911000003", subCity: "Lideta", status: "New" }
-];
-const defaultSettings = {
-  siteTitle: "Shamo Business Portal",
-  supportEmail: "admin@shamobusiness.com",
-  defaultLanguage: "en",
-  autoPublish: false,
-  notifyOnRegistration: true
-};
 const basePosts = videos.filter((video) => videoCategories.includes(video.category)).slice(0, 12).map((video, index) => ({
   ...video,
   status: ["Draft", "Published", "Scheduled", "Review"][index % 4],
@@ -197,6 +276,7 @@ const emptyAdminForm = {
   titleEn: "",
   titleAm: "",
   keywords: "",
+  youtubeUrl: "",
   descriptionEn: "",
   descriptionAm: "",
   fileName: "",
@@ -216,105 +296,65 @@ function getStatusClasses(status) {
 }
 function AdminDataProvider({ children }) {
   const [posts, setPosts] = reactExports.useState(basePosts);
-  const [registrations, setRegistrations] = reactExports.useState(defaultRegistrations);
-  const [settings, setSettings] = reactExports.useState(defaultSettings);
+  const [registrations, setRegistrations] = reactExports.useState([]);
+  const [settings, setSettings] = reactExports.useState({
+    siteTitle: "Shamo Business Portal",
+    supportEmail: "admin@shamobusiness.com",
+    defaultLanguage: "en",
+    autoPublish: false,
+    notifyOnRegistration: true
+  });
   const [notifications, setNotifications] = reactExports.useState(3);
+  const [isLoading, setIsLoading] = reactExports.useState(true);
   reactExports.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(ADMIN_POSTS_KEY);
-    if (!raw) return;
-    try {
-      setPosts(JSON.parse(raw));
-    } catch {
-      localStorage.removeItem(ADMIN_POSTS_KEY);
-    }
+    void (async () => {
+      const snapshot = await getAdminSnapshot();
+      setPosts(snapshot.posts);
+      setRegistrations(snapshot.registrations);
+      setSettings(snapshot.settings);
+      setNotifications(snapshot.notifications);
+      setIsLoading(false);
+    })();
   }, []);
-  reactExports.useEffect(() => {
-    if (typeof window === "undefined") return;
-    const rawRegistrations = localStorage.getItem(ADMIN_REGISTRATIONS_KEY);
-    if (rawRegistrations) {
-      try {
-        setRegistrations(JSON.parse(rawRegistrations));
-      } catch {
-        localStorage.removeItem(ADMIN_REGISTRATIONS_KEY);
-      }
-    }
-    const rawSettings = localStorage.getItem(ADMIN_SETTINGS_KEY);
-    if (rawSettings) {
-      try {
-        setSettings(JSON.parse(rawSettings));
-      } catch {
-        localStorage.removeItem(ADMIN_SETTINGS_KEY);
-      }
-    }
-  }, []);
-  reactExports.useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(ADMIN_POSTS_KEY, JSON.stringify(posts));
-  }, [posts]);
-  reactExports.useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(ADMIN_REGISTRATIONS_KEY, JSON.stringify(registrations));
-  }, [registrations]);
-  reactExports.useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(settings));
-  }, [settings]);
   const value = reactExports.useMemo(
     () => ({
       posts,
       notifications,
       registrations,
       settings,
-      createPost: (form, status) => {
+      isLoading,
+      createPost: async (form, status) => {
         if (!form.category || !form.titleEn || !form.titleAm) {
           return { ok: false, message: "Please fill category, English title, and Amharic title before saving." };
         }
-        const newPost = {
-          id: `admin-${Date.now()}`,
-          titleEn: form.titleEn,
-          titleAm: form.titleAm,
-          thumb: videos[0]?.thumb ?? "",
-          duration: "00:00",
-          views: 0,
-          channel: "Shamo Admin",
-          channelAm: "ሻሞ አስተዳዳሪ",
-          category: form.category,
-          postedDays: 0,
-          status,
-          createdAtLabel: "Just now",
-          keywords: form.keywords,
-          descriptionEn: form.descriptionEn,
-          descriptionAm: form.descriptionAm,
-          shareTo: form.shareTo,
-          source: "admin"
-        };
-        setPosts((current) => [newPost, ...current]);
+        const result = await createAdminPost({ data: { form, status } });
+        setPosts((current) => [result.post, ...current]);
         setNotifications((count) => count + 1);
-        return {
-          ok: true,
-          message: status === "Published" ? "Video posted successfully and added to the recent posts table." : status === "Scheduled" ? "Video saved with scheduled status." : "Draft saved successfully."
-        };
+        return { ok: true, message: result.message };
       },
-      updatePostStatus: (postId, status) => {
+      updatePostStatus: async (postId, status) => {
+        await updateAdminPostStatus({ data: { postId, status } });
         setPosts((current) => current.map((post) => post.id === postId ? { ...post, status } : post));
       },
-      deletePost: (postId) => {
+      deletePost: async (postId) => {
+        await deleteAdminPost({ data: { postId } });
         setPosts((current) => current.filter((post) => post.id !== postId));
       },
-      markRegistrationReviewed: (registrationId) => {
+      markRegistrationReviewed: async (registrationId) => {
+        await markAdminRegistrationReviewed({ data: { registrationId } });
         setRegistrations(
           (current) => current.map(
             (registration) => registration.id === registrationId ? { ...registration, status: "Reviewed" } : registration
           )
         );
       },
-      saveSettings: (nextSettings) => {
+      saveSettings: async (nextSettings) => {
+        await saveAdminSettings({ data: nextSettings });
         setSettings(nextSettings);
       },
       clearNotifications: () => setNotifications(0)
     }),
-    [notifications, posts, registrations, settings]
+    [isLoading, notifications, posts, registrations, settings]
   );
   return /* @__PURE__ */ jsxRuntimeExports.jsx(AdminDataContext.Provider, { value, children });
 }
@@ -686,7 +726,7 @@ const Route$c = createFileRoute("/register")({
 });
 const today = (/* @__PURE__ */ new Date()).toISOString().slice(0, 10);
 const autoId = `SBP-${Math.floor(1e5 + Math.random() * 9e5)}`;
-function Field$1({
+function Field$2({
   labelEn,
   labelAm,
   children,
@@ -708,6 +748,7 @@ const inputCls$1 = "h-10 w-full rounded-lg border border-input bg-background px-
 function Register() {
   const [hasJob, setHasJob] = reactExports.useState("");
   const [submitted, setSubmitted] = reactExports.useState(false);
+  const [submittedId, setSubmittedId] = reactExports.useState(autoId);
   if (submitted) {
     return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
@@ -718,7 +759,7 @@ function Register() {
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 inline-flex rounded-full border border-border bg-card px-4 py-2 text-xs", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Your ID", am: "የእርስዎ መለያ" }),
           ": ",
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "ml-2 font-mono font-bold", children: autoId })
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "ml-2 font-mono font-bold", children: submittedId })
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6", children: /* @__PURE__ */ jsxRuntimeExports.jsx("button", { onClick: () => setSubmitted(false), className: "text-sm font-semibold text-primary hover:underline", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "← Register another", am: "← ሌላ ይመዝግቡ" }) }) })
       ] }) }),
@@ -740,29 +781,49 @@ function Register() {
         {
           onSubmit: (e) => {
             e.preventDefault();
-            setSubmitted(true);
+            const formData = new FormData(e.currentTarget);
+            const id = String(formData.get("id") ?? autoId);
+            void (async () => {
+              await submitJobRegistration({
+                data: {
+                  id,
+                  firstName: String(formData.get("firstName") ?? ""),
+                  lastName: String(formData.get("lastName") ?? ""),
+                  gender: String(formData.get("gender") ?? ""),
+                  age: Number(formData.get("age") ?? 0),
+                  lastWorkedIn: String(formData.get("lastWorkedIn") ?? ""),
+                  profession: String(formData.get("profession") ?? ""),
+                  subCity: String(formData.get("subCity") ?? ""),
+                  mobile1: String(formData.get("mobile1") ?? ""),
+                  mobile2: String(formData.get("mobile2") ?? ""),
+                  hasJob
+                }
+              });
+              setSubmittedId(id);
+              setSubmitted(true);
+            })();
           },
           className: "mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8",
           children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-5 sm:grid-cols-2", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Date", labelAm: "ቀን", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", defaultValue: today, readOnly: true, className: `${inputCls$1} bg-secondary/60` }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "ID (Auto)", labelAm: "መለያ ቁጥር", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { readOnly: true, value: autoId, className: `${inputCls$1} bg-secondary/60 font-mono` }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "First Name", labelAm: "የመጀመሪያ ስም", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { required: true, className: inputCls$1, placeholder: "Abebe" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Last Name", labelAm: "የአባት ስም", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { required: true, className: inputCls$1, placeholder: "Kebede" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Gender", labelAm: "ጾታ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { required: true, className: inputCls$1, defaultValue: "", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Date", labelAm: "ቀን", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "date", defaultValue: today, readOnly: true, className: `${inputCls$1} bg-secondary/60` }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "ID (Auto)", labelAm: "መለያ ቁጥር", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "id", readOnly: true, value: autoId, className: `${inputCls$1} bg-secondary/60 font-mono` }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "First Name", labelAm: "የመጀመሪያ ስም", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "firstName", required: true, className: inputCls$1, placeholder: "Abebe" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Last Name", labelAm: "የአባት ስም", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "lastName", required: true, className: inputCls$1, placeholder: "Kebede" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Gender", labelAm: "ጾታ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "gender", required: true, className: inputCls$1, defaultValue: "", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: "—" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "male", children: "Male / ወንድ" }),
                 /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "female", children: "Female / ሴት" })
               ] }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Age", labelAm: "ዕድሜ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { required: true, type: "number", min: 16, max: 75, className: inputCls$1, placeholder: "25" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Last Worked In", labelAm: "የመጨረሻ የሥራ ቦታ", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { className: inputCls$1, placeholder: "e.g. Ethio Telecom" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Profession", labelAm: "ሙያ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { required: true, className: inputCls$1, placeholder: "Software Engineer" }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Sub City", labelAm: "ክፍለ ከተማ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { required: true, className: inputCls$1, defaultValue: "", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Age", labelAm: "ዕድሜ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "age", required: true, type: "number", min: 16, max: 75, className: inputCls$1, placeholder: "25" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Last Worked In", labelAm: "የመጨረሻ የሥራ ቦታ", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "lastWorkedIn", className: inputCls$1, placeholder: "e.g. Ethio Telecom" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Profession", labelAm: "ሙያ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "profession", required: true, className: inputCls$1, placeholder: "Software Engineer" }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Sub City", labelAm: "ክፍለ ከተማ", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsxs("select", { name: "subCity", required: true, className: inputCls$1, defaultValue: "", children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "", disabled: true, children: "—" }),
                 ["Bole", "Yeka", "Kirkos", "Arada", "Lideta", "Addis Ketema", "Gulele", "Kolfe Keranio", "Nifas Silk-Lafto", "Akaky Kaliti", "Lemi Kura"].map((s) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: s, children: s }, s))
               ] }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Mobile 1", labelAm: "ስልክ 1", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { required: true, type: "tel", className: inputCls$1, placeholder: "+251 9.." }) }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { labelEn: "Mobile 2", labelAm: "ስልክ 2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "tel", className: inputCls$1, placeholder: "+251 9.." }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Mobile 1", labelAm: "ስልክ 1", required: true, children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "mobile1", required: true, type: "tel", className: inputCls$1, placeholder: "+251 9.." }) }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Field$2, { labelEn: "Mobile 2", labelAm: "ስልክ 2", children: /* @__PURE__ */ jsxRuntimeExports.jsx("input", { name: "mobile2", type: "tel", className: inputCls$1, placeholder: "+251 9.." }) }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-1.5 flex items-baseline justify-between gap-2", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs font-semibold", children: [
@@ -875,6 +936,7 @@ function Contact() {
   ] });
 }
 const Route$a = createFileRoute("/categories")({
+  loader: async () => ({ videos: await getPublicVideos() }),
   head: () => ({
     meta: [
       { title: "Categories · ምድቦች — Shamo Business Portal" },
@@ -884,9 +946,10 @@ const Route$a = createFileRoute("/categories")({
   component: Categories
 });
 function Categories() {
+  const { videos: videos2 } = Route$a.useLoaderData();
   const { lang } = useLang();
   const [active, setActive] = reactExports.useState("all");
-  const list = active === "all" ? categories$1.flatMap(getByCategory) : getByCategory(active);
+  const list = active === "all" ? videos2 : videos2.filter((video) => video.category === active);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "border-b border-border bg-card/40", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8", children: [
@@ -963,17 +1026,19 @@ function AdminLoginPage() {
     return /* @__PURE__ */ jsxRuntimeExports.jsx(Outlet, {});
   }
   const handleLogin = () => {
-    const result = login(username.trim(), password);
-    if (!result.ok) {
-      setError(result.message);
-      return;
-    }
-    setError("");
-    if (typeof window !== "undefined") {
-      window.location.assign("/admin/dashboard");
-      return;
-    }
-    void navigate({ to: "/admin/dashboard" });
+    void (async () => {
+      const result = await login(username.trim(), password);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+      setError("");
+      if (typeof window !== "undefined") {
+        window.location.assign("/admin/dashboard");
+        return;
+      }
+      void navigate({ to: "/admin/dashboard" });
+    })();
   };
   reactExports.useEffect(() => {
     if (isAuthenticated) {
@@ -1107,9 +1172,9 @@ function VideoCard({ v }) {
     }
   );
 }
-function VideoCarousel({ category, titleEn, titleAm }) {
+function VideoCarousel({ category, titleEn, titleAm, items }) {
   const ref = reactExports.useRef(null);
-  const items = getByCategory(category);
+  const resolvedItems = items ?? getByCategory(category);
   const scroll = (dir) => {
     ref.current?.scrollBy({ left: dir * 600, behavior: "smooth" });
   };
@@ -1153,12 +1218,13 @@ function VideoCarousel({ category, titleEn, titleAm }) {
       {
         ref,
         className: "mt-4 flex gap-4 overflow-x-auto scroll-smooth px-4 pb-3 sm:px-6 lg:px-8 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden",
-        children: items.map((v) => /* @__PURE__ */ jsxRuntimeExports.jsx(VideoCard, { v }, v.id))
+        children: resolvedItems.map((v) => /* @__PURE__ */ jsxRuntimeExports.jsx(VideoCard, { v }, v.id))
       }
     )
   ] });
 }
 const Route$7 = createFileRoute("/")({
+  loader: async () => ({ videos: await getPublicVideos() }),
   head: () => ({
     meta: [
       { title: "Shamo Business Portal · ሻሞ ቢዝነስ ፖርታል" },
@@ -1179,10 +1245,11 @@ const highlights = [
   { Icon: Building2, en: "Industrial Zones", am: "ኢንዱስትሪ ዞኖች", desc_en: "Inside tours of Ethiopia's parks.", desc_am: "የኢትዮጵያ ፓርኮች ጉብኝት።" },
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" }
 ];
-const featuredVideo = getVideo("cat_invest-0");
-const featuredVideoEmbed = "https://www.youtube.com/embed/NMYWBOTeg1I";
 function Home() {
+  const { videos: videos2 } = Route$7.useLoaderData();
   const { lang, t } = useLang();
+  const featuredVideo = videos2[0] ?? getVideo("cat_invest-0");
+  const featuredVideoEmbed = featuredVideo.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "relative overflow-hidden", children: [
@@ -1272,7 +1339,16 @@ function Home() {
         " →"
       ] })
     ] }) }),
-    categories$1.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(VideoCarousel, { category: c, titleEn: dict[c].en, titleAm: dict[c].am }, c)),
+    categories$1.map((c) => /* @__PURE__ */ jsxRuntimeExports.jsx(
+      VideoCarousel,
+      {
+        category: c,
+        titleEn: dict[c].en,
+        titleAm: dict[c].am,
+        items: videos2.filter((video) => video.category === c)
+      },
+      c
+    )),
     /* @__PURE__ */ jsxRuntimeExports.jsx("section", { className: "mx-auto mt-20 max-w-7xl px-4 sm:px-6 lg:px-8", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative overflow-hidden rounded-3xl gradient-brand p-8 text-white sm:p-12", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.2),transparent_50%)]" }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative grid gap-6 lg:grid-cols-[1.5fr_1fr] lg:items-center", children: [
@@ -1298,10 +1374,10 @@ function Home() {
   ] });
 }
 const Route$6 = createFileRoute("/video/$videoId")({
-  loader: ({ params }) => {
-    const v = getVideo(params.videoId);
+  loader: async ({ params }) => {
+    const v = await getPublicVideoById({ data: { id: params.videoId } }) ?? getVideo(params.videoId);
     if (!v) throw notFound();
-    return { video: v };
+    return { video: v, allVideos: await getPublicVideos() };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -1318,33 +1394,26 @@ const sampleComments = [
   { name: "Selam B.", nameAm: "ሰላም ብ.", text: "Excellent video — please post more on industrial parks.", textAm: "በጣም ጥሩ ቪዲዮ — ስለ ኢንዱስትሪያል ፓርኮች ተጨማሪ ይለጥፉ።", time: "1d" }
 ];
 function VideoPage() {
-  const { video } = Route$6.useLoaderData();
+  const { video, allVideos } = Route$6.useLoaderData();
   const { lang, t } = useLang();
   const [liked, setLiked] = reactExports.useState(false);
-  const [subscribed, setSubscribed] = reactExports.useState(false);
-  const related = videos.filter((v) => v.id !== video.id).slice(0, 8);
+  const related = allVideos.filter((v) => v.id !== video.id).slice(0, 8);
+  const playerEmbedUrl = video.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("main", { className: "mx-auto grid max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: video.thumb, alt: "", className: "h-full w-full object-cover opacity-80" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30" }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "absolute inset-0 grid place-items-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "grid h-20 w-20 place-items-center rounded-full bg-white/95 shadow-2xl transition-transform hover:scale-110", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Play, { className: "h-9 w-9 translate-x-1 fill-primary text-primary" }) }) }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-1 w-full rounded-full bg-white/30", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-full w-1/3 rounded-full bg-primary" }) }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex items-center justify-between text-xs text-white", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
-                "04:12 / ",
-                video.duration
-              ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-3", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "HD" }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "1x" })
-              ] })
-            ] })
-          ] })
-        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "relative aspect-video overflow-hidden rounded-2xl bg-black shadow-2xl", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+          "iframe",
+          {
+            className: "h-full w-full",
+            src: playerEmbedUrl,
+            title: lang === "am" ? video.titleAm : video.titleEn,
+            allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share",
+            referrerPolicy: "strict-origin-when-cross-origin",
+            allowFullScreen: true
+          }
+        ) }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsx("h1", { className: "text-2xl font-extrabold leading-tight tracking-tight sm:text-3xl", children: lang === "am" ? video.titleAm : video.titleEn }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm text-muted-foreground font-ethiopic", children: lang === "am" ? video.titleEn : video.titleAm })
@@ -1355,68 +1424,33 @@ function VideoPage() {
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "truncate text-sm font-semibold", children: lang === "am" ? video.channelAm : video.channel }),
               /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-xs text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "124K subscribers", am: "124ሺ ተመዝጋቢዎች" }) })
-            ] }),
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "col-span-2 flex flex-wrap items-center gap-2 sm:col-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex items-center rounded-full border border-border bg-card", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsxs(
               "button",
               {
-                onClick: () => setSubscribed((s) => !s),
-                className: `ml-2 shrink-0 rounded-full px-4 py-2 text-xs font-semibold transition-colors ${subscribed ? "border border-border bg-secondary text-foreground" : "bg-foreground text-background hover:bg-foreground/90"}`,
+                onClick: () => setLiked((l) => !l),
+                className: `inline-flex items-center gap-1.5 rounded-l-full px-4 py-2 text-xs font-semibold transition-colors hover:bg-accent ${liked ? "text-primary" : ""}`,
                 children: [
-                  /* @__PURE__ */ jsxRuntimeExports.jsx(BellRing, { className: "mr-1 inline h-3.5 w-3.5" }),
-                  subscribed ? /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Subscribed", am: "ተመዝግቧል" }) : t("subscribe")
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: `h-3.5 w-3.5 ${liked ? "fill-primary" : ""}` }),
+                  " ",
+                  formatViews(video.views / 12),
+                  " ",
+                  t("like")
                 ]
               }
-            )
-          ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "col-span-2 flex flex-wrap items-center gap-2 sm:col-auto", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "inline-flex items-center rounded-full border border-border bg-card", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsxs(
-                "button",
-                {
-                  onClick: () => setLiked((l) => !l),
-                  className: `inline-flex items-center gap-1.5 rounded-l-full px-4 py-2 text-xs font-semibold transition-colors hover:bg-accent ${liked ? "text-primary" : ""}`,
-                  children: [
-                    /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: `h-3.5 w-3.5 ${liked ? "fill-primary" : ""}` }),
-                    " ",
-                    formatViews(video.views / 12),
-                    " ",
-                    t("like")
-                  ]
-                }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-5 w-px bg-border" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "px-3 text-xs text-muted-foreground inline-flex items-center gap-1", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3.5 w-3.5" }),
-                " ",
-                formatViews(video.views),
-                " ",
-                t("views")
-              ] })
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Share2, { className: "h-3.5 w-3.5" }),
+            ),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-5 w-px bg-border" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "px-3 text-xs text-muted-foreground inline-flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3.5 w-3.5" }),
               " ",
-              t("share")
-            ] }),
-            /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-4 py-2 text-xs font-semibold hover:bg-accent", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(Download, { className: "h-3.5 w-3.5" }),
+              formatViews(video.views),
               " ",
-              t("download")
+              t("views")
             ] })
-          ] })
+          ] }) })
         ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs(
-          Link,
-          {
-            to: "/register",
-            className: "mt-5 flex items-center gap-3 rounded-xl border border-success/30 bg-success/10 px-4 py-3 text-sm font-semibold text-success hover:bg-success/15",
-            children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(ExternalLink, { className: "h-4 w-4" }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "flex-1", children: t("regLink") }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "rounded-full bg-success px-3 py-1 text-xs font-bold text-success-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Register", am: "ይመዝገቡ" }) })
-            ]
-          }
-        ),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5 rounded-xl border border-border bg-card p-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs font-semibold text-muted-foreground", children: [
             formatViews(video.views),
@@ -1603,12 +1637,28 @@ const Route$5 = createFileRoute("/admin/videos")({
   component: RouteComponent$5
 });
 const statusOptions = ["Draft", "Review", "Scheduled", "Published"];
+function getCommentCount(postId) {
+  const numeric = postId.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  return numeric % 24 + 3;
+}
+function getComments(postTitle, postId) {
+  const total = getCommentCount(postId);
+  return Array.from({ length: Math.min(total, 4) }, (_, index) => ({
+    id: `${postId}-comment-${index + 1}`,
+    author: ["Hanna A.", "Yonas T.", "Selam B.", "Meron K."][index % 4],
+    message: `Comment ${index + 1} on ${postTitle}`,
+    time: `${index + 1}h ago`
+  }));
+}
 function RouteComponent$5() {
   const { isAuthenticated } = useRequireAdmin();
   const { posts, updatePostStatus, deletePost } = useAdminData();
   const { lang } = useLang();
   const [categoryFilter, setCategoryFilter] = reactExports.useState("all");
   const [statusFilter, setStatusFilter] = reactExports.useState("all");
+  const [expandedCommentsPostId, setExpandedCommentsPostId] = reactExports.useState(null);
+  const [page, setPage] = reactExports.useState(1);
+  const pageSize = 5;
   const filteredPosts = reactExports.useMemo(
     () => posts.filter((post) => {
       const categoryMatch = categoryFilter === "all" || post.category === categoryFilter;
@@ -1617,6 +1667,8 @@ function RouteComponent$5() {
     }),
     [categoryFilter, posts, statusFilter]
   );
+  const totalPages = Math.max(1, Math.ceil(filteredPosts.length / pageSize));
+  const paginatedPosts = filteredPosts.slice((page - 1) * pageSize, page * pageSize);
   if (!isAuthenticated) return null;
   return /* @__PURE__ */ jsxRuntimeExports.jsx(AdminShell, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between", children: [
@@ -1636,20 +1688,51 @@ function RouteComponent$5() {
         statusOptions.map((status) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: status, children: status }, status))
       ] })
     ] }),
-    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 space-y-4", children: filteredPosts.map((post) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-4 rounded-2xl border border-border p-4 lg:grid-cols-[140px_1fr_auto] lg:items-center", children: [
-      /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: post.thumb, alt: post.titleEn, className: "h-24 w-full rounded-xl object-cover" }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
-        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "text-base font-bold", children: lang === "am" ? post.titleAm : post.titleEn }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-1 text-sm text-muted-foreground", children: [
-          dict[post.category].en,
-          " · ",
-          formatViews(post.views),
-          " views · ",
-          post.createdAtLabel
-        ] }),
-        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-3 flex flex-wrap items-center gap-3", children: [
-          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(post.status)}`, children: post.status }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx(
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-3 text-xs text-muted-foreground", children: [
+      "Showing ",
+      (page - 1) * pageSize + 1,
+      "-",
+      Math.min(page * pageSize, filteredPosts.length),
+      " of ",
+      filteredPosts.length,
+      " videos"
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-6 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full min-w-[920px] text-sm", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border text-left text-xs uppercase text-muted-foreground", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Video" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Category" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Views" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Comments" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Status" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 pr-3", children: "Change status" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-3 text-right", children: "Action" })
+      ] }) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: paginatedPosts.map((post) => /* @__PURE__ */ jsxRuntimeExports.jsxs(jsxRuntimeExports.Fragment, { children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border/60 align-top", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("img", { src: post.thumb, alt: post.titleEn, className: "h-16 w-24 rounded-lg object-cover" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "line-clamp-2 font-bold", children: lang === "am" ? post.titleAm : post.titleEn }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-1 text-xs text-muted-foreground", children: post.createdAtLabel })
+            ] })
+          ] }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: dict[post.category].en }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: formatViews(post.views) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: () => setExpandedCommentsPostId((current) => current === post.id ? null : post.id),
+              className: "inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-semibold hover:bg-accent",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(MessageSquareMore, { className: "h-3.5 w-3.5" }),
+                " ",
+                getCommentCount(post.id)
+              ]
+            }
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(post.status)}`, children: post.status }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 pr-3", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
             "select",
             {
               value: post.status,
@@ -1657,29 +1740,154 @@ function RouteComponent$5() {
               className: "h-9 rounded-lg border border-input bg-background px-3 text-sm",
               children: statusOptions.map((status) => /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: status, children: status }, status))
             }
-          )
-        ] })
-      ] }),
-      /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          ) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-4 text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+            "button",
+            {
+              type: "button",
+              onClick: () => deletePost(post.id),
+              className: "inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2 text-sm font-semibold text-destructive",
+              children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" }),
+                " Delete"
+              ]
+            }
+          ) })
+        ] }, post.id),
+        expandedCommentsPostId === post.id && /* @__PURE__ */ jsxRuntimeExports.jsx("tr", { className: "border-b border-border/60 bg-muted/20 last:border-0", children: /* @__PURE__ */ jsxRuntimeExports.jsx("td", { colSpan: 7, className: "px-4 py-4", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl border border-border bg-background p-4", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mb-3 text-sm font-bold", children: "Recent comments" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-3", children: getComments(lang === "am" ? post.titleAm : post.titleEn, post.id).map((comment) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl border border-border/70 p-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between gap-3", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-semibold", children: comment.author }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs text-muted-foreground", children: comment.time })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm text-muted-foreground", children: comment.message })
+          ] }, comment.id)) })
+        ] }) }) })
+      ] })) })
+    ] }) }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 flex items-center justify-between gap-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
         "button",
         {
           type: "button",
-          onClick: () => deletePost(post.id),
-          className: "inline-flex items-center justify-center gap-2 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-2 text-sm font-semibold text-destructive",
-          children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx(Trash2, { className: "h-4 w-4" }),
-            " Delete"
-          ]
+          disabled: page === 1,
+          onClick: () => setPage((current) => Math.max(1, current - 1)),
+          className: "rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50",
+          children: "Previous"
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-sm text-muted-foreground", children: [
+        "Page ",
+        page,
+        " of ",
+        totalPages
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          type: "button",
+          disabled: page === totalPages,
+          onClick: () => setPage((current) => Math.min(totalPages, current + 1)),
+          className: "rounded-full border border-border px-4 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50",
+          children: "Next"
         }
       )
-    ] }, post.id)) })
+    ] })
   ] }) });
 }
 const Route$4 = createFileRoute("/admin/settings")({
   component: RouteComponent$4
 });
 function RouteComponent$4() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: 'Hello "/admin/settings"!' });
+  const { isAuthenticated, isReady } = useRequireAdmin();
+  const { settings, saveSettings } = useAdminData();
+  const [form, setForm] = reactExports.useState(settings);
+  const [saved, setSaved] = reactExports.useState(false);
+  reactExports.useEffect(() => {
+    setForm(settings);
+  }, [settings]);
+  if (!isReady || !isAuthenticated) return null;
+  return /* @__PURE__ */ jsxRuntimeExports.jsx(AdminShell, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-xl font-bold", children: "Admin settings" }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-2 text-sm text-muted-foreground", children: "Configure portal defaults and admin notifications." }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 grid gap-5 md:grid-cols-2", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { label: "Site title", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          value: form.siteTitle,
+          onChange: (e) => setForm((current) => ({ ...current, siteTitle: e.target.value })),
+          className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { label: "Support email", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          value: form.supportEmail,
+          onChange: (e) => setForm((current) => ({ ...current, supportEmail: e.target.value })),
+          className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field$1, { label: "Default language", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+        "select",
+        {
+          value: form.defaultLanguage,
+          onChange: (e) => setForm((current) => ({ ...current, defaultLanguage: e.target.value })),
+          className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm",
+          children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "en", children: "English" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "am", children: "Amharic" })
+          ]
+        }
+      ) })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 space-y-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Toggle,
+        {
+          label: "Auto publish new posts",
+          checked: form.autoPublish,
+          onChange: (checked) => setForm((current) => ({ ...current, autoPublish: checked }))
+        }
+      ),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        Toggle,
+        {
+          label: "Notify on new registrations",
+          checked: form.notifyOnRegistration,
+          onChange: (checked) => setForm((current) => ({ ...current, notifyOnRegistration: checked }))
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-6 flex items-center gap-3", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          type: "button",
+          onClick: () => {
+            saveSettings(form);
+            setSaved(true);
+            window.setTimeout(() => setSaved(false), 2e3);
+          },
+          className: "rounded-full bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground",
+          children: "Save settings"
+        }
+      ),
+      saved && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-sm font-medium text-emerald-600", children: "Settings saved." })
+    ] })
+  ] }) });
+}
+function Field$1({ label, children }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "block", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "mb-2 block text-sm font-semibold", children: label }),
+    children
+  ] });
+}
+function Toggle({ label, checked, onChange }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3 text-sm", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium", children: label }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("input", { type: "checkbox", checked, onChange: (e) => onChange(e.target.checked) })
+  ] });
 }
 const Route$3 = createFileRoute("/admin/registrations")({
   component: RouteComponent$3
@@ -1738,13 +1946,15 @@ function RouteComponent$2() {
   const [feedback, setFeedback] = reactExports.useState(null);
   if (!isAuthenticated) return null;
   const submitPost = (status) => {
-    const result = createPost(form, settings.autoPublish && status === "Published" ? "Published" : status);
-    if (!result.ok) {
-      setFeedback({ type: "error", message: result.message });
-      return;
-    }
-    setFeedback({ type: "success", message: result.message });
-    setForm({ ...emptyAdminForm });
+    void (async () => {
+      const result = await createPost(form, settings.autoPublish && status === "Published" ? "Published" : status);
+      if (!result.ok) {
+        setFeedback({ type: "error", message: result.message });
+        return;
+      }
+      setFeedback({ type: "success", message: result.message });
+      setForm({ ...emptyAdminForm });
+    })();
   };
   return /* @__PURE__ */ jsxRuntimeExports.jsx(AdminShell, { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "max-w-3xl", children: [
@@ -1770,6 +1980,15 @@ function RouteComponent$2() {
           value: form.fileName,
           onChange: (e) => setForm((current) => ({ ...current, fileName: e.target.value })),
           placeholder: "example-video.mp4",
+          className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
+        }
+      ) }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(Field, { label: "YouTube embed link", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "input",
+        {
+          value: form.youtubeUrl,
+          onChange: (e) => setForm((current) => ({ ...current, youtubeUrl: e.target.value })),
+          placeholder: "https://www.youtube.com/embed/...",
           className: "h-11 w-full rounded-xl border border-input bg-background px-3 text-sm"
         }
       ) }),
@@ -1947,7 +2166,62 @@ const Route = createFileRoute("/admin/analytics")({
   component: RouteComponent
 });
 function RouteComponent() {
-  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { children: 'Hello "/admin/analytics"!' });
+  const { isAuthenticated, isReady } = useRequireAdmin();
+  const { posts, registrations } = useAdminData();
+  if (!isReady || !isAuthenticated) return null;
+  const summary = getDashboardSummary(posts);
+  const breakdown = getCategoryBreakdown(posts);
+  const topPosts = [...posts].sort((a, b) => b.views - a.views).slice(0, 5);
+  const reviewedRate = registrations.length ? Math.round(registrations.filter((registration) => registration.status === "Reviewed").length / registrations.length * 100) : 0;
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs(AdminShell, { children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "grid gap-6 lg:grid-cols-[0.9fr_1.1fr]", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl border border-border bg-card p-6", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: "Performance overview" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5 space-y-4 text-sm", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Metric, { label: "Total views", value: summary.formattedTotalViews }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Metric, { label: "Published content", value: `${summary.publishedCount} / ${summary.totalVideos}` }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Metric, { label: "Scheduled queue", value: `${summary.scheduledCount} videos` }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(Metric, { label: "Application review rate", value: `${reviewedRate}%` })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-2xl border border-border bg-card p-6", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: "Content by category" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-5 space-y-4", children: breakdown.map((item) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mb-1 flex items-center justify-between text-sm", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: dict[item.category].en, am: dict[item.category].am }) }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-semibold", children: [
+              item.total,
+              " videos"
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-3 overflow-hidden rounded-full bg-muted", children: /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-full rounded-full bg-primary", style: { width: `${summary.totalVideos ? item.total / summary.totalVideos * 100 : 0}%` } }) })
+        ] }, item.category)) })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("section", { className: "rounded-2xl border border-border bg-card p-6", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: "Top performing posts" }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 overflow-x-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("table", { className: "w-full min-w-[640px] text-sm", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("thead", { children: /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border text-left text-xs uppercase text-muted-foreground", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2", children: "Title" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2", children: "Category" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2", children: "Views" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("th", { className: "py-2", children: "Status" })
+        ] }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("tbody", { children: topPosts.map((post) => /* @__PURE__ */ jsxRuntimeExports.jsxs("tr", { className: "border-b border-border/60 last:border-0", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 font-semibold", children: post.titleEn }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3", children: dict[post.category].en }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3", children: formatViews(post.views) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3", children: post.status })
+        ] }, post.id)) })
+      ] }) })
+    ] })
+  ] });
+}
+function Metric({ label, value }) {
+  return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between rounded-2xl border border-border bg-background px-4 py-3", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-muted-foreground", children: label }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-base font-bold", children: value })
+  ] });
 }
 const RegisterRoute = Route$c.update({
   id: "/register",

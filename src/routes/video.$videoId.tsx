@@ -1,15 +1,16 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { getPublicVideoById, getPublicVideos } from "@/lib/api/admin.functions";
 import { Bi, useLang } from "@/lib/i18n";
-import { getVideo, videos, formatViews } from "@/lib/videos";
+import { getVideo, formatViews } from "@/lib/videos";
 import { ThumbsUp, Eye, Send, Play } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/video/$videoId")({
-  loader: ({ params }) => {
-    const v = getVideo(params.videoId);
+  loader: async ({ params }) => {
+    const v = (await getPublicVideoById({ data: { id: params.videoId } })) ?? getVideo(params.videoId);
     if (!v) throw notFound();
-    return { video: v };
+    return { video: v, allVideos: await getPublicVideos() };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -28,12 +29,12 @@ const sampleComments = [
 ];
 
 function VideoPage() {
-  const { video } = Route.useLoaderData();
+  const { video, allVideos } = Route.useLoaderData();
   const { lang, t } = useLang();
   const [liked, setLiked] = useState(false);
 
-  const related = videos.filter((v) => v.id !== video.id).slice(0, 8);
-  const playerEmbedUrl = "https://www.youtube.com/embed/NMYWBOTeg1I";
+  const related = allVideos.filter((v) => v.id !== video.id).slice(0, 8);
+  const playerEmbedUrl = video.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
 
   return (
     <div className="min-h-screen bg-background">

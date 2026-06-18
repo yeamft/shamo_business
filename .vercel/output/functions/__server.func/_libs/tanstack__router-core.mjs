@@ -1203,6 +1203,9 @@ function isRedirect(obj) {
 function isResolvedRedirect(obj) {
   return isRedirect(obj) && !!obj.options.href;
 }
+function parseRedirect(obj) {
+  if (obj !== null && typeof obj === "object" && obj.isSerializedRedirect) return redirect(obj);
+}
 const triggerOnReady = (inner) => {
   if (!inner.rendered) {
     inner.rendered = true;
@@ -4696,7 +4699,8 @@ export {
   makeSerovalPlugin as M,
   getStylesheetHref as N,
   isSsrResponse as O,
-  notFound as P,
+  parseRedirect as P,
+  notFound as Q,
   RouterCore as R,
   isDangerousProtocol as a,
   BaseRoute as b,

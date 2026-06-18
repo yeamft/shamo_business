@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { VideoCarousel } from "@/components/video-carousel";
+import { getPublicVideos } from "@/lib/api/admin.functions";
 import { Bi, useLang, dict } from "@/lib/i18n";
 import { categories, getVideo } from "@/lib/videos";
 import { ArrowRight, Play, TrendingUp, Building2, Lightbulb, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/")({
+  loader: async () => ({ videos: await getPublicVideos() }),
   head: () => ({
     meta: [
       { title: "Shamo Business Portal · ሻሞ ቢዝነስ ፖርታል" },
@@ -29,11 +31,12 @@ const highlights = [
   { Icon: Briefcase, en: "Job Registration", am: "የሥራ ምዝገባ", desc_en: "Get matched with employers.", desc_am: "ከቀጣሪዎች ጋር ይገናኙ።" },
 ];
 
-const featuredVideo = getVideo("cat_invest-0");
-const featuredVideoEmbed = "https://www.youtube.com/embed/NMYWBOTeg1I";
-
 function Home() {
+  const { videos } = Route.useLoaderData();
   const { lang, t } = useLang();
+  const featuredVideo = videos[0] ?? getVideo("cat_invest-0");
+  const featuredVideoEmbed = featuredVideo.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
+  const featuredCategory = dict[featuredVideo.category] ?? { en: "Latest Video", am: "የቅርብ ቪዲዮ" };
   return (
     <div className="min-h-screen bg-background">
       <SiteHeader />
@@ -67,7 +70,7 @@ function Home() {
               </Link>
               <Link
                 to="/video/$videoId"
-                params={{ videoId: "cat_invest-0" }}
+                params={{ videoId: featuredVideo.id }}
                 className="inline-flex items-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/20"
               >
                 <Play className="h-4 w-4 fill-current" /> {t("heroCta2")}
@@ -91,7 +94,7 @@ function Home() {
                 <iframe
                   className="h-full w-full"
                   src={featuredVideoEmbed}
-                  title={featuredVideo.titleEn}
+                  title={lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                   referrerPolicy="strict-origin-when-cross-origin"
                   allowFullScreen
@@ -100,7 +103,7 @@ function Home() {
               <div className="pointer-events-none absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/90 via-black/45 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
                 <div className="text-[11px] font-semibold uppercase tracking-wider text-emerald-300">
-                  <Bi en="Featured · Invest in Ethiopia" am="ተመራጭ · በኢትዮጵያ ኢንቨስት" />
+                  <Bi en={`Featured · ${featuredCategory.en}`} am={`ተመራጭ · ${featuredCategory.am}`} />
                 </div>
                 <h3 className="mt-1 text-lg font-bold leading-tight">
                   {lang === "am" ? featuredVideo.titleAm : featuredVideo.titleEn}
@@ -144,7 +147,13 @@ function Home() {
 
       {/* Carousels */}
       {categories.map((c) => (
-        <VideoCarousel key={c} category={c} titleEn={dict[c].en} titleAm={dict[c].am} />
+        <VideoCarousel
+          key={c}
+          category={c}
+          titleEn={dict[c].en}
+          titleAm={dict[c].am}
+          items={videos.filter((video) => video.category === c)}
+        />
       ))}
 
       {/* CTA */}

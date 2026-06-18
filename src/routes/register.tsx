@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
+import { submitJobRegistration } from "@/lib/api/admin.functions";
 import { Bi } from "@/lib/i18n";
 import { useState } from "react";
 import { CheckCircle2, Briefcase } from "lucide-react";
@@ -47,6 +48,7 @@ const inputCls =
 function Register() {
   const [hasJob, setHasJob] = useState<"yes" | "no" | "">("");
   const [submitted, setSubmitted] = useState(false);
+  const [submittedId, setSubmittedId] = useState(autoId);
 
   if (submitted) {
     return (
@@ -62,7 +64,7 @@ function Register() {
               <Bi en="We will contact you when a matching opportunity becomes available." am="ተስማሚ የሥራ እድል ሲገኝ እናገኝዎታለን።" />
             </p>
             <div className="mt-4 inline-flex rounded-full border border-border bg-card px-4 py-2 text-xs">
-              <Bi en="Your ID" am="የእርስዎ መለያ" />: <span className="ml-2 font-mono font-bold">{autoId}</span>
+              <Bi en="Your ID" am="የእርስዎ መለያ" />: <span className="ml-2 font-mono font-bold">{submittedId}</span>
             </div>
             <div className="mt-6">
               <button onClick={() => setSubmitted(false)} className="text-sm font-semibold text-primary hover:underline">
@@ -97,7 +99,28 @@ function Register() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            setSubmitted(true);
+            const formData = new FormData(e.currentTarget);
+            const id = String(formData.get("id") ?? autoId);
+
+            void (async () => {
+              await submitJobRegistration({
+                data: {
+                  id,
+                  firstName: String(formData.get("firstName") ?? ""),
+                  lastName: String(formData.get("lastName") ?? ""),
+                  gender: String(formData.get("gender") ?? ""),
+                  age: Number(formData.get("age") ?? 0),
+                  lastWorkedIn: String(formData.get("lastWorkedIn") ?? ""),
+                  profession: String(formData.get("profession") ?? ""),
+                  subCity: String(formData.get("subCity") ?? ""),
+                  mobile1: String(formData.get("mobile1") ?? ""),
+                  mobile2: String(formData.get("mobile2") ?? ""),
+                  hasJob,
+                },
+              });
+              setSubmittedId(id);
+              setSubmitted(true);
+            })();
           }}
           className="mt-6 rounded-2xl border border-border bg-card p-6 shadow-sm sm:p-8"
         >
@@ -106,36 +129,36 @@ function Register() {
               <input type="date" defaultValue={today} readOnly className={`${inputCls} bg-secondary/60`} />
             </Field>
             <Field labelEn="ID (Auto)" labelAm="መለያ ቁጥር">
-              <input readOnly value={autoId} className={`${inputCls} bg-secondary/60 font-mono`} />
+              <input name="id" readOnly value={autoId} className={`${inputCls} bg-secondary/60 font-mono`} />
             </Field>
 
             <Field labelEn="First Name" labelAm="የመጀመሪያ ስም" required>
-              <input required className={inputCls} placeholder="Abebe" />
+              <input name="firstName" required className={inputCls} placeholder="Abebe" />
             </Field>
             <Field labelEn="Last Name" labelAm="የአባት ስም" required>
-              <input required className={inputCls} placeholder="Kebede" />
+              <input name="lastName" required className={inputCls} placeholder="Kebede" />
             </Field>
 
             <Field labelEn="Gender" labelAm="ጾታ" required>
-              <select required className={inputCls} defaultValue="">
+              <select name="gender" required className={inputCls} defaultValue="">
                 <option value="" disabled>—</option>
                 <option value="male">Male / ወንድ</option>
                 <option value="female">Female / ሴት</option>
               </select>
             </Field>
             <Field labelEn="Age" labelAm="ዕድሜ" required>
-              <input required type="number" min={16} max={75} className={inputCls} placeholder="25" />
+              <input name="age" required type="number" min={16} max={75} className={inputCls} placeholder="25" />
             </Field>
 
             <Field labelEn="Last Worked In" labelAm="የመጨረሻ የሥራ ቦታ">
-              <input className={inputCls} placeholder="e.g. Ethio Telecom" />
+              <input name="lastWorkedIn" className={inputCls} placeholder="e.g. Ethio Telecom" />
             </Field>
             <Field labelEn="Profession" labelAm="ሙያ" required>
-              <input required className={inputCls} placeholder="Software Engineer" />
+              <input name="profession" required className={inputCls} placeholder="Software Engineer" />
             </Field>
 
             <Field labelEn="Sub City" labelAm="ክፍለ ከተማ" required>
-              <select required className={inputCls} defaultValue="">
+              <select name="subCity" required className={inputCls} defaultValue="">
                 <option value="" disabled>—</option>
                 {["Bole", "Yeka", "Kirkos", "Arada", "Lideta", "Addis Ketema", "Gulele", "Kolfe Keranio", "Nifas Silk-Lafto", "Akaky Kaliti", "Lemi Kura"].map((s) => (
                   <option key={s} value={s}>{s}</option>
@@ -143,11 +166,11 @@ function Register() {
               </select>
             </Field>
             <Field labelEn="Mobile 1" labelAm="ስልክ 1" required>
-              <input required type="tel" className={inputCls} placeholder="+251 9.." />
+              <input name="mobile1" required type="tel" className={inputCls} placeholder="+251 9.." />
             </Field>
 
             <Field labelEn="Mobile 2" labelAm="ስልክ 2">
-              <input type="tel" className={inputCls} placeholder="+251 9.." />
+              <input name="mobile2" type="tel" className={inputCls} placeholder="+251 9.." />
             </Field>
 
             <div>
