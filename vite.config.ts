@@ -10,6 +10,9 @@ export default defineConfig({
   // Use Nitro's Vercel preset so production builds emit Vercel-compatible SSR output.
   nitro: {
     preset: "vercel",
+    externals: {
+      inline: ["tslib", "@supabase/supabase-js", "@supabase/auth-js", "@supabase/postgrest-js", "@supabase/realtime-js", "@supabase/storage-js", "@supabase/functions-js"],
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
