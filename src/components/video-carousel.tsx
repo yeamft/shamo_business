@@ -42,6 +42,13 @@ function VideoCard({ v }: { v: Video }) {
           <span className="inline-flex items-center gap-1"><Eye className="h-3 w-3" /> {formatViews(v.views)}</span>
         </div>
       </div>
+      <div className="pointer-events-none absolute inset-0 rounded-xl border-2 border-transparent group-hover:border-primary/50" >
+        <span className="absolute inset-0 rounded-xl border-2 border-primary/50" >
+        <ChevronLeft className="absolute left-1 top-1/2 h-4 w-4 -translate-y-1/2 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+        <ChevronRight className="absolute right-1 top-1/2 h-4 w-4 -translate-y-1/2 text-white opacity-0 transition-opacity group-hover:opacity-100" />
+        </span>
+    
+      </div>
     </Link>
   );
 }

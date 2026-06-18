@@ -10,6 +10,8 @@ import {
 import { useEffect, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { AdminAuthProvider } from "../lib/admin-auth";
+import { AdminDataProvider } from "../lib/admin-data";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { LanguageProvider } from "../lib/i18n";
 
@@ -120,9 +122,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <LanguageProvider>
-        <Outlet />
-      </LanguageProvider>
+      <AdminAuthProvider>
+        <AdminDataProvider>
+          <LanguageProvider>
+            <Outlet />
+          </LanguageProvider>
+        </AdminDataProvider>
+      </AdminAuthProvider>
     </QueryClientProvider>
   );
 }

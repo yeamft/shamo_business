@@ -16,6 +16,9 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VideoVideoIdRouteImport } from './routes/video.$videoId'
+import { Route as AdminVideosRouteImport } from './routes/admin/videos'
+import { Route as AdminPostRouteImport } from './routes/admin/post'
+import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -52,33 +55,57 @@ const VideoVideoIdRoute = VideoVideoIdRouteImport.update({
   path: '/video/$videoId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminVideosRoute = AdminVideosRouteImport.update({
+  id: '/videos',
+  path: '/videos',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminPostRoute = AdminPostRouteImport.update({
+  id: '/post',
+  path: '/post',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminDashboardRoute = AdminDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/post': typeof AdminPostRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/post': typeof AdminPostRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/dashboard': typeof AdminDashboardRoute
+  '/admin/post': typeof AdminPostRoute
+  '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +117,9 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/dashboard'
+    | '/admin/post'
+    | '/admin/videos'
     | '/video/$videoId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +129,9 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/dashboard'
+    | '/admin/post'
+    | '/admin/videos'
     | '/video/$videoId'
   id:
     | '__root__'
@@ -108,13 +141,16 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/dashboard'
+    | '/admin/post'
+    | '/admin/videos'
     | '/video/$videoId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   CategoriesRoute: typeof CategoriesRoute
   ContactRoute: typeof ContactRoute
   RegisterRoute: typeof RegisterRoute
@@ -172,13 +208,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof VideoVideoIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/videos': {
+      id: '/admin/videos'
+      path: '/videos'
+      fullPath: '/admin/videos'
+      preLoaderRoute: typeof AdminVideosRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/post': {
+      id: '/admin/post'
+      path: '/post'
+      fullPath: '/admin/post'
+      preLoaderRoute: typeof AdminPostRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/dashboard': {
+      id: '/admin/dashboard'
+      path: '/dashboard'
+      fullPath: '/admin/dashboard'
+      preLoaderRoute: typeof AdminDashboardRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
+
+interface AdminRouteChildren {
+  AdminDashboardRoute: typeof AdminDashboardRoute
+  AdminPostRoute: typeof AdminPostRoute
+  AdminVideosRoute: typeof AdminVideosRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminDashboardRoute: AdminDashboardRoute,
+  AdminPostRoute: AdminPostRoute,
+  AdminVideosRoute: AdminVideosRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   CategoriesRoute: CategoriesRoute,
   ContactRoute: ContactRoute,
   RegisterRoute: RegisterRoute,
