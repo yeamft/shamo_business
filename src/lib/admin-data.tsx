@@ -1,5 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
+import {
+  createAdminPost,
+  deleteAdminPost,
+  getAdminSnapshot,
+  markAdminRegistrationReviewed,
+  saveAdminSettings as saveAdminSettingsMutation,
+  updateAdminPostStatus,
+} from "@/lib/api/admin.functions";
+
 import { formatViews, videos } from "./videos";
 import type { AdminPost, PostStatus, SocialPlatform, Video } from "./video-types";
 
@@ -25,23 +34,30 @@ export type RegistrationRecord = {
   status: "New" | "Reviewed";
 };
 
+export type AdminSettings = {
+  siteTitle: string;
+  supportEmail: string;
+  defaultLanguage: "en" | "am";
+  autoPublish: boolean;
+  notifyOnRegistration: boolean;
+};
+
 type AdminDataContextValue = {
   posts: AdminPost[];
   notifications: number;
   registrations: RegistrationRecord[];
-  createPost: (form: FormState, status: PostStatus) => { ok: true; message: string } | { ok: false; message: string };
+  settings: AdminSettings;
+  isLoading: boolean;
+  createPost: (form: FormState, status: PostStatus) => Promise<{ ok: true; message: string } | { ok: false; message: string }>;
+  updatePostStatus: (postId: string, status: PostStatus) => Promise<void>;
+  deletePost: (postId: string) => Promise<void>;
+  markRegistrationReviewed: (registrationId: string) => Promise<void>;
+  saveSettings: (settings: AdminSettings) => Promise<void>;
   clearNotifications: () => void;
 };
 
-const ADMIN_POSTS_KEY = "shamo-admin-posts";
-
 const AdminDataContext = createContext<AdminDataContextValue | null>(null);
 
-const defaultRegistrations: RegistrationRecord[] = [
-  { id: "SBP-100204", name: "Abebe Kebede", profession: "Sales Officer", phone: "+251911000001", subCity: "Bole", status: "New" },
-  { id: "SBP-100205", name: "Selam Tesfaye", profession: "Accountant", phone: "+251911000002", subCity: "Yeka", status: "Reviewed" },
-  { id: "SBP-100206", name: "Hanna Alemu", profession: "Project Coordinator", phone: "+251911000003", subCity: "Lideta", status: "New" },
-];
 
 const basePosts: AdminPost[] = videos
   .filter((video): video is Video => videoCategories.includes(video.category as (typeof videoCategories)[number]))
@@ -83,71 +99,68 @@ export function getStatusClasses(status: PostStatus) {
 
 export function AdminDataProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<AdminPost[]>(basePosts);
+  const [registrations, setRegistrations] = useState<RegistrationRecord[]>([]);
+  const [settings, setSettings] = useState<AdminSettings>({
+    siteTitle: "Shamo Business Portal",
+    supportEmail: "admin@shamobusiness.com",
+    defaultLanguage: "en",
+    autoPublish: false,
+    notifyOnRegistration: true,
+  });
   const [notifications, setNotifications] = useState(3);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const raw = localStorage.getItem(ADMIN_POSTS_KEY);
-    if (!raw) return;
-
-    try {
-      setPosts(JSON.parse(raw) as AdminPost[]);
-    } catch {
-      localStorage.removeItem(ADMIN_POSTS_KEY);
-    }
+    void (async () => {
+      const snapshot = await getAdminSnapshot();
+      setPosts(snapshot.posts);
+      setRegistrations(snapshot.registrations);
+      setSettings(snapshot.settings);
+      setNotifications(snapshot.notifications);
+      setIsLoading(false);
+    })();
   }, []);
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    localStorage.setItem(ADMIN_POSTS_KEY, JSON.stringify(posts));
-  }, [posts]);
 
   const value = useMemo<AdminDataContextValue>(
     () => ({
       posts,
       notifications,
-      registrations: defaultRegistrations,
-      createPost: (form, status) => {
+      registrations,
+      settings,
+      isLoading,
+      createPost: async (form, status) => {
         if (!form.category || !form.titleEn || !form.titleAm) {
           return { ok: false, message: "Please fill category, English title, and Amharic title before saving." };
         }
 
-        const newPost: AdminPost = {
-          id: `admin-${Date.now()}`,
-          titleEn: form.titleEn,
-          titleAm: form.titleAm,
-          thumb: videos[0]?.thumb ?? "",
-          duration: "00:00",
-          views: 0,
-          channel: "Shamo Admin",
-          channelAm: "ሻሞ አስተዳዳሪ",
-          category: form.category as Video["category"],
-          postedDays: 0,
-          status,
-          createdAtLabel: "Just now",
-          keywords: form.keywords,
-          descriptionEn: form.descriptionEn,
-          descriptionAm: form.descriptionAm,
-          shareTo: form.shareTo,
-          source: "admin",
-        };
-
-        setPosts((current) => [newPost, ...current]);
+        const result = await createAdminPost({ data: { form, status } });
+        setPosts((current) => [result.post, ...current]);
         setNotifications((count) => count + 1);
-
-        return {
-          ok: true,
-          message:
-            status === "Published"
-              ? "Video posted successfully and added to the recent posts table."
-              : status === "Scheduled"
-                ? "Video saved with scheduled status."
-                : "Draft saved successfully.",
-        };
+        return { ok: true, message: result.message };
+      },
+      updatePostStatus: async (postId, status) => {
+        await updateAdminPostStatus({ data: { postId, status } });
+        setPosts((current) => current.map((post) => (post.id === postId ? { ...post, status } : post)));
+      },
+      deletePost: async (postId) => {
+        await deleteAdminPost({ data: { postId } });
+        setPosts((current) => current.filter((post) => post.id !== postId));
+      },
+      markRegistrationReviewed: async (registrationId) => {
+        await markAdminRegistrationReviewed({ data: { registrationId } });
+        setRegistrations((current) =>
+          current.map((registration) =>
+            registration.id === registrationId ? { ...registration, status: "Reviewed" } : registration,
+          ),
+        );
+      },
+      saveSettings: async (nextSettings) => {
+        await saveAdminSettingsMutation({ data: nextSettings });
+        setSettings(nextSettings);
       },
       clearNotifications: () => setNotifications(0),
     }),
-    [notifications, posts],
+    [isLoading, notifications, posts, registrations, settings],
   );
 
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;
@@ -177,3 +190,11 @@ export function getDashboardSummary(posts: AdminPost[]) {
 }
 
 export const categories = [...videoCategories];
+
+export function getCategoryBreakdown(posts: AdminPost[]) {
+  return categories.map((category) => ({
+    category,
+    total: posts.filter((post) => post.category === category).length,
+    published: posts.filter((post) => post.category === category && post.status === "Published").length,
+  }));
+}

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useLocation, useNavigate } from "@tanstack/react-router";
 import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 
@@ -15,11 +15,35 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminLoginPage() {
+  const location = useLocation();
   const navigate = useNavigate();
   const { isAuthenticated, login } = useAdminAuth();
   const [username, setUsername] = useState(adminCredentials.username);
   const [password, setPassword] = useState(adminCredentials.password);
   const [error, setError] = useState("");
+
+  if (location.pathname !== "/admin") {
+    return <Outlet />;
+  }
+
+  const handleLogin = () => {
+    void (async () => {
+      const result = await login(username.trim(), password);
+      if (!result.ok) {
+        setError(result.message);
+        return;
+      }
+
+      setError("");
+
+      if (typeof window !== "undefined") {
+        window.location.assign("/admin/dashboard");
+        return;
+      }
+
+      void navigate({ to: "/admin/dashboard" });
+    })();
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -42,13 +66,7 @@ function AdminLoginPage() {
           className="mt-6 space-y-4"
           onSubmit={(e) => {
             e.preventDefault();
-            const result = login(username.trim(), password);
-            if (!result.ok) {
-              setError(result.message);
-              return;
-            }
-            setError("");
-            void navigate({ to: "/admin/dashboard" });
+            handleLogin();
           }}
         >
           <div>

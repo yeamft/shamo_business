@@ -742,6 +742,13 @@ function RouterProvider({ router, ...rest }) {
     children: /* @__PURE__ */ jsxRuntimeExports.jsx(Matches, {})
   });
 }
+function useLocation(opts) {
+  const router = useRouter();
+  {
+    const location = router.stores.location.get();
+    return location;
+  }
+}
 var noopScriptHandler = () => {
 };
 function setScriptAttrs(script, attrs) {
@@ -1135,6 +1142,7 @@ export {
   createFileRoute as b,
   createRouter as c,
   useNavigate as d,
+  useLocation as e,
   renderRouterToStream as r,
   useRouter as u
 };

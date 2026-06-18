@@ -17,8 +17,11 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as VideoVideoIdRouteImport } from './routes/video.$videoId'
 import { Route as AdminVideosRouteImport } from './routes/admin/videos'
+import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
+import { Route as AdminRegistrationsRouteImport } from './routes/admin/registrations'
 import { Route as AdminPostRouteImport } from './routes/admin/post'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -60,6 +63,16 @@ const AdminVideosRoute = AdminVideosRouteImport.update({
   path: '/videos',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminSettingsRoute = AdminSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminRegistrationsRoute = AdminRegistrationsRouteImport.update({
+  id: '/registrations',
+  path: '/registrations',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminPostRoute = AdminPostRouteImport.update({
   id: '/post',
   path: '/post',
@@ -70,6 +83,11 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -78,8 +96,11 @@ export interface FileRoutesByFullPath {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
+  '/admin/registrations': typeof AdminRegistrationsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
@@ -90,8 +111,11 @@ export interface FileRoutesByTo {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
+  '/admin/registrations': typeof AdminRegistrationsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
@@ -103,8 +127,11 @@ export interface FileRoutesById {
   '/categories': typeof CategoriesRoute
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
+  '/admin/analytics': typeof AdminAnalyticsRoute
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
+  '/admin/registrations': typeof AdminRegistrationsRoute
+  '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
 }
@@ -117,8 +144,11 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/post'
+    | '/admin/registrations'
+    | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
   fileRoutesByTo: FileRoutesByTo
@@ -129,8 +159,11 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/post'
+    | '/admin/registrations'
+    | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
   id:
@@ -141,8 +174,11 @@ export interface FileRouteTypes {
     | '/categories'
     | '/contact'
     | '/register'
+    | '/admin/analytics'
     | '/admin/dashboard'
     | '/admin/post'
+    | '/admin/registrations'
+    | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
   fileRoutesById: FileRoutesById
@@ -215,6 +251,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminVideosRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/settings': {
+      id: '/admin/settings'
+      path: '/settings'
+      fullPath: '/admin/settings'
+      preLoaderRoute: typeof AdminSettingsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/registrations': {
+      id: '/admin/registrations'
+      path: '/registrations'
+      fullPath: '/admin/registrations'
+      preLoaderRoute: typeof AdminRegistrationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/post': {
       id: '/admin/post'
       path: '/post'
@@ -229,18 +279,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/analytics': {
+      id: '/admin/analytics'
+      path: '/analytics'
+      fullPath: '/admin/analytics'
+      preLoaderRoute: typeof AdminAnalyticsRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
 interface AdminRouteChildren {
+  AdminAnalyticsRoute: typeof AdminAnalyticsRoute
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminPostRoute: typeof AdminPostRoute
+  AdminRegistrationsRoute: typeof AdminRegistrationsRoute
+  AdminSettingsRoute: typeof AdminSettingsRoute
   AdminVideosRoute: typeof AdminVideosRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
+  AdminAnalyticsRoute: AdminAnalyticsRoute,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminPostRoute: AdminPostRoute,
+  AdminRegistrationsRoute: AdminRegistrationsRoute,
+  AdminSettingsRoute: AdminSettingsRoute,
   AdminVideosRoute: AdminVideosRoute,
 }
 
