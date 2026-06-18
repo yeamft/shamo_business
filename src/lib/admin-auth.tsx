@@ -36,8 +36,8 @@ function getStoredAdminUser(): AdminUser | null {
 }
 
 export function AdminAuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AdminUser | null>(() => getStoredAdminUser());
-  const [isReady, setIsReady] = useState(() => typeof window !== "undefined");
+  const [user, setUser] = useState<AdminUser | null>(null);
+  const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
