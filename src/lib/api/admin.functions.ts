@@ -444,6 +444,14 @@ export const markAdminRegistrationReviewed = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
+export const deleteAdminRegistration = createServerFn({ method: "POST" })
+  .validator(z.object({ registrationId: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    await supabase.from("job_registrations").delete().eq("id", data.registrationId);
+    return { ok: true as const };
+  });
+
 export const saveAdminSettings = createServerFn({ method: "POST" })
   .validator(settingsSchema)
   .handler(async ({ data }) => {

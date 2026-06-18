@@ -3,6 +3,7 @@ import { createContext, useContext, useEffect, useMemo, useState, type ReactNode
 import {
   createAdminPost,
   deleteAdminPost,
+  deleteAdminRegistration,
   getAdminSnapshot,
   markAdminRegistrationReviewed,
   saveAdminSettings as saveAdminSettingsMutation,
@@ -64,6 +65,7 @@ type AdminDataContextValue = {
   updatePostStatus: (postId: string, status: PostStatus) => Promise<void>;
   deletePost: (postId: string) => Promise<void>;
   markRegistrationReviewed: (registrationId: string) => Promise<void>;
+  deleteRegistration: (registrationId: string) => Promise<void>;
   saveSettings: (settings: AdminSettings) => Promise<void>;
   clearNotifications: () => void;
 };
@@ -168,6 +170,10 @@ export function AdminDataProvider({ children }: { children: ReactNode }) {
             registration.id === registrationId ? { ...registration, status: "Reviewed" } : registration,
           ),
         );
+      },
+      deleteRegistration: async (registrationId) => {
+        await deleteAdminRegistration({ data: { registrationId } });
+        setRegistrations((current) => current.filter((registration) => registration.id !== registrationId));
       },
       saveSettings: async (nextSettings) => {
         await saveAdminSettingsMutation({ data: nextSettings });

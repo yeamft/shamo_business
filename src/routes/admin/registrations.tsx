@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { AdminShell } from "@/components/admin-shell";
@@ -11,7 +12,7 @@ export const Route = createFileRoute("/admin/registrations")({
 
 function RouteComponent() {
   const { isAuthenticated } = useRequireAdmin();
-  const { registrations, markRegistrationReviewed } = useAdminData();
+  const { registrations, markRegistrationReviewed, deleteRegistration } = useAdminData();
   const [selectedRegistrationId, setSelectedRegistrationId] = useState<string | null>(null);
 
   const selectedRegistration = registrations.find((registration) => registration.id === selectedRegistrationId) ?? null;
@@ -68,6 +69,18 @@ function RouteComponent() {
                       >
                         Mark reviewed
                       </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (selectedRegistrationId === registration.id) {
+                            setSelectedRegistrationId(null);
+                          }
+                          void deleteRegistration(registration.id);
+                        }}
+                        className="inline-flex items-center gap-1 rounded-full border border-destructive/30 bg-destructive/5 px-3 py-1.5 text-xs font-semibold text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" /> Delete
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -89,6 +102,19 @@ function RouteComponent() {
                 className="rounded-full border border-border px-3 py-1.5 text-xs font-semibold"
               >
                 Close
+              </button>
+            </div>
+
+            <div className="mt-4 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  void deleteRegistration(selectedRegistration.id);
+                  setSelectedRegistrationId(null);
+                }}
+                className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/5 px-4 py-2 text-sm font-semibold text-destructive"
+              >
+                <Trash2 className="h-4 w-4" /> Delete registration
               </button>
             </div>
 
