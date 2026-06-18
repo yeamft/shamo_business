@@ -49,6 +49,16 @@ create table if not exists public.admin_settings (
   notify_on_registration boolean not null default true
 );
 
+create table if not exists public.video_comments (
+  id text primary key,
+  video_id text not null references public.admin_videos(id) on delete cascade,
+  author_name text not null,
+  message text not null,
+  parent_id text references public.video_comments(id) on delete cascade,
+  likes integer not null default 0,
+  created_at timestamptz not null default now()
+);
+
 insert into public.admin_settings (id, site_title, support_email, default_language, auto_publish, notify_on_registration)
 values (1, 'Shamo Business Portal', 'admin@shamobusiness.com', 'en', false, true)
 on conflict (id) do nothing;
@@ -56,6 +66,7 @@ on conflict (id) do nothing;
 alter table public.admin_videos enable row level security;
 alter table public.job_registrations enable row level security;
 alter table public.admin_settings enable row level security;
+alter table public.video_comments enable row level security;
 
 drop policy if exists "public read admin_videos" on public.admin_videos;
 create policy "public read admin_videos"
@@ -89,3 +100,19 @@ drop policy if exists "service role select job_registrations" on public.job_regi
 create policy "service role select job_registrations"
 on public.job_registrations for select
 using (auth.role() = 'service_role');
+
+drop policy if exists "public read video_comments" on public.video_comments;
+create policy "public read video_comments"
+on public.video_comments for select
+using (true);
+
+drop policy if exists "public insert video_comments" on public.video_comments;
+create policy "public insert video_comments"
+on public.video_comments for insert
+with check (true);
+
+drop policy if exists "service role full video_comments" on public.video_comments;
+create policy "service role full video_comments"
+on public.video_comments for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');

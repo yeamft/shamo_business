@@ -3,7 +3,7 @@ import { Q as QueryClientProvider } from "../_libs/tanstack__react-query.mjs";
 import { c as createRouter, a as createRootRouteWithContext, u as useRouter, L as Link, O as Outlet, H as HeadContent, S as Scripts, b as createFileRoute, d as useNavigate, e as useLocation } from "../_libs/tanstack__react-router.mjs";
 import { Q as notFound } from "../_libs/tanstack__router-core.mjs";
 import { r as reactExports, j as jsxRuntimeExports } from "../_libs/react.mjs";
-import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-r2qRflVP.mjs";
+import { c as createServerFn, T as TSS_SERVER_FUNCTION, g as getServerFnById } from "./server-La95DZ7K.mjs";
 import "../_libs/seroval.mjs";
 import { T as ThumbsUp, E as Eye, S as Send, C as CircleCheck, B as Briefcase, M as MapPin, P as Phone, a as Mail, b as Play, c as Target, H as Heart, A as ArrowRight, d as TrendingUp, L as Lightbulb, e as Building2, f as Search, G as Globe, X, g as Menu, h as ShieldCheck, i as LockKeyhole, j as MessageSquareMore, k as Trash2, F as FileText, l as Clock3, m as FolderKanban, U as Users, n as ChartColumn, o as ChevronLeft, p as ChevronRight, q as LayoutDashboard, V as Video, r as Upload, s as Settings, t as LogOut, u as Bell } from "../_libs/lucide-react.mjs";
 import { o as objectType, s as stringType, e as enumType, n as numberType, b as booleanType, a as arrayType } from "../_libs/zod.mjs";
@@ -22,7 +22,7 @@ import "node:async_hooks";
 import "../_libs/h3-v2.mjs";
 import "../_libs/rou3.mjs";
 import "../_libs/srvx.mjs";
-const appCss = "/assets/styles-CGGo04lT.css";
+const appCss = "/assets/styles-DD3sqPYT.css";
 var createSsrRpc = (functionId) => {
   const url = "/_serverFn/" + functionId;
   const serverFnMeta = { id: functionId };
@@ -76,6 +76,29 @@ const getPublicVideoById = createServerFn({
 }).validator(objectType({
   id: stringType()
 })).handler(createSsrRpc("96403100c70d80ecc2c543c699a80ca2f38c212b339efbd0656d8bcc44a43b1b"));
+const getVideoComments = createServerFn({
+  method: "GET"
+}).validator(objectType({
+  videoId: stringType()
+})).handler(createSsrRpc("8fb8ec4362f7c28347f92ba88a52775702ae0a9b0477ea9a9c5486a73b41998f"));
+const createVideoComment = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  videoId: stringType(),
+  authorName: stringType().trim().min(1).max(80),
+  message: stringType().trim().min(1).max(1e3),
+  parentId: stringType().optional()
+})).handler(createSsrRpc("f0a188d77d6db038f1c86f50937f926f5cd14734a018a8390ba00231fe537a87"));
+const likeVideoComment = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  commentId: stringType()
+})).handler(createSsrRpc("40b285feb05234d3b74af6cd7924471cda6a37a582710f2fbf5eeff7f4bf9979"));
+const incrementVideoViews = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  videoId: stringType()
+})).handler(createSsrRpc("87a8b613d9331885fd0c2a55c5ac45bcf26e714107d7c799146eb7a9ec1d4e9b"));
 const updateAdminPostStatus = createServerFn({
   method: "POST"
 }).validator(objectType({
@@ -1374,11 +1397,15 @@ function Home() {
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteFooter, {})
   ] });
 }
+function getStoredCommentsKey(videoId) {
+  return `shamo-video-comments:${videoId}`;
+}
 const Route$6 = createFileRoute("/video/$videoId")({
   loader: async ({ params }) => {
     const v = await getPublicVideoById({ data: { id: params.videoId } }) ?? getVideo(params.videoId);
     if (!v) throw notFound();
-    return { video: v, allVideos: await getPublicVideos() };
+    const [allVideos, comments] = await Promise.all([getPublicVideos(), getVideoComments({ data: { videoId: params.videoId } })]);
+    return { video: v, allVideos, comments };
   },
   head: ({ loaderData }) => ({
     meta: [
@@ -1389,17 +1416,101 @@ const Route$6 = createFileRoute("/video/$videoId")({
   }),
   component: VideoPage
 });
-const sampleComments = [
-  { name: "Hanna A.", nameAm: "ሃና አ.", text: "Very informative, thank you!", textAm: "በጣም ጠቃሚ ነው፣ አመሰግናለሁ!", time: "2h" },
-  { name: "Yonas T.", nameAm: "ዮናስ ት.", text: "Where can I find more about the registration process?", textAm: "ስለ ምዝገባ ሂደት የበለጠ የት ማግኘት እችላለሁ?", time: "5h" },
-  { name: "Selam B.", nameAm: "ሰላም ብ.", text: "Excellent video — please post more on industrial parks.", textAm: "በጣም ጥሩ ቪዲዮ — ስለ ኢንዱስትሪያል ፓርኮች ተጨማሪ ይለጥፉ።", time: "1d" }
-];
 function VideoPage() {
-  const { video, allVideos } = Route$6.useLoaderData();
+  const { video, allVideos, comments: initialComments } = Route$6.useLoaderData();
   const { lang, t } = useLang();
   const [liked, setLiked] = reactExports.useState(false);
+  const [comments, setComments] = reactExports.useState(initialComments);
+  const [viewCount, setViewCount] = reactExports.useState(video.views);
+  const [authorName, setAuthorName] = reactExports.useState("");
+  const [commentText, setCommentText] = reactExports.useState("");
+  const [replyingToId, setReplyingToId] = reactExports.useState(null);
+  const [isSubmittingComment, setIsSubmittingComment] = reactExports.useState(false);
+  const [commentError, setCommentError] = reactExports.useState("");
+  const storageKey = reactExports.useMemo(() => getStoredCommentsKey(video.id), [video.id]);
   const related = allVideos.filter((v) => v.id !== video.id).slice(0, 8);
   const playerEmbedUrl = video.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
+  const topLevelComments = comments.filter((comment) => !comment.parentId);
+  reactExports.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return;
+    try {
+      const storedComments = JSON.parse(raw);
+      if (Array.isArray(storedComments) && storedComments.length > 0) {
+        setComments((current) => {
+          const existingIds = new Set(current.map((comment) => comment.id));
+          const mergedStoredComments = storedComments.filter((comment) => !existingIds.has(comment.id));
+          return [...mergedStoredComments, ...current];
+        });
+      }
+    } catch {
+      window.localStorage.removeItem(storageKey);
+    }
+  }, [storageKey]);
+  reactExports.useEffect(() => {
+    if (typeof window === "undefined") return;
+    window.localStorage.setItem(storageKey, JSON.stringify(comments));
+  }, [comments, storageKey]);
+  reactExports.useEffect(() => {
+    if (typeof window === "undefined") return;
+    const viewKey = `shamo-video-viewed:${video.id}`;
+    if (window.localStorage.getItem(viewKey)) return;
+    const timer = window.setTimeout(() => {
+      window.localStorage.setItem(viewKey, "1");
+      setViewCount((current) => current + 1);
+      void incrementVideoViews({ data: { videoId: video.id } }).catch(() => void 0);
+    }, 3e3);
+    return () => window.clearTimeout(timer);
+  }, [video.id]);
+  const handleCommentSubmit = async () => {
+    const trimmedAuthor = authorName.trim();
+    const trimmedMessage = commentText.trim();
+    if (!trimmedAuthor || !trimmedMessage) {
+      setCommentError("Please enter your name and comment.");
+      return;
+    }
+    setIsSubmittingComment(true);
+    setCommentError("");
+    const fallbackComment = {
+      id: `local-comment-${Date.now()}`,
+      videoId: video.id,
+      authorName: trimmedAuthor,
+      message: trimmedMessage,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      createdAtLabel: "Just now",
+      likes: 0,
+      parentId: replyingToId
+    };
+    try {
+      const createdComment = await createVideoComment({
+        data: {
+          videoId: video.id,
+          authorName: trimmedAuthor,
+          message: trimmedMessage,
+          parentId: replyingToId ?? void 0
+        }
+      });
+      setComments((current) => [createdComment, ...current]);
+    } catch {
+      setComments((current) => [fallbackComment, ...current]);
+      setCommentError("Saved locally. Run the Supabase SQL update to enable shared comment storage.");
+    } finally {
+      setCommentText("");
+      setAuthorName("");
+      setReplyingToId(null);
+      setIsSubmittingComment(false);
+    }
+  };
+  const handleCommentLike = async (commentId) => {
+    setComments((current) => current.map((comment) => comment.id === commentId ? { ...comment, likes: comment.likes + 1 } : comment));
+    try {
+      const updatedComment = await likeVideoComment({ data: { commentId } });
+      setComments((current) => current.map((comment) => comment.id === commentId ? updatedComment : comment));
+    } catch {
+    }
+  };
+  const getReplies = (parentId) => comments.filter((comment) => comment.parentId === parentId);
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-h-screen bg-background", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsx(SiteHeader, {}),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("main", { className: "mx-auto grid max-w-7xl gap-8 px-4 py-6 sm:px-6 lg:grid-cols-[1fr_360px] lg:px-8", children: [
@@ -1436,7 +1547,7 @@ function VideoPage() {
                 children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: `h-3.5 w-3.5 ${liked ? "fill-primary" : ""}` }),
                   " ",
-                  formatViews(video.views / 12),
+                  formatViews(viewCount / 12),
                   " ",
                   t("like")
                 ]
@@ -1446,7 +1557,7 @@ function VideoPage() {
             /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "px-3 text-xs text-muted-foreground inline-flex items-center gap-1", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsx(Eye, { className: "h-3.5 w-3.5" }),
               " ",
-              formatViews(video.views),
+              formatViews(viewCount),
               " ",
               t("views")
             ] })
@@ -1454,7 +1565,7 @@ function VideoPage() {
         ] }),
         /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-5 rounded-xl border border-border bg-card p-4", children: [
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs font-semibold text-muted-foreground", children: [
-            formatViews(video.views),
+            formatViews(viewCount),
             " ",
             t("views"),
             " · ",
@@ -1474,47 +1585,91 @@ function VideoPage() {
             " ",
             /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "ml-2 text-sm font-normal text-muted-foreground", children: [
               "(",
-              sampleComments.length,
+              comments.length,
               ")"
             ] })
           ] }),
           /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-4 flex items-start gap-3", children: [
             /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-secondary text-xs font-bold", children: "You" }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0 flex-1", children: [
-              /* @__PURE__ */ jsxRuntimeExports.jsx(
-                "input",
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid gap-3", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "input",
+                  {
+                    value: authorName,
+                    onChange: (e) => setAuthorName(e.target.value),
+                    placeholder: replyingToId ? "Your name for reply" : "Your name",
+                    className: "h-10 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  }
+                ),
+                /* @__PURE__ */ jsxRuntimeExports.jsx(
+                  "textarea",
+                  {
+                    value: commentText,
+                    onChange: (e) => setCommentText(e.target.value),
+                    placeholder: t("addComment"),
+                    rows: 3,
+                    className: "w-full rounded-2xl border border-border bg-background px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  }
+                )
+              ] }),
+              replyingToId && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-2 flex items-center justify-between text-xs text-muted-foreground", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "Replying to a comment" }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => setReplyingToId(null), className: "font-semibold hover:text-foreground", children: "Cancel reply" })
+              ] }),
+              commentError && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 text-sm text-destructive", children: commentError }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 flex justify-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "button",
                 {
-                  placeholder: t("addComment"),
-                  className: "h-10 w-full rounded-full border border-border bg-background px-4 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  type: "button",
+                  disabled: isSubmittingComment,
+                  onClick: () => void handleCommentSubmit(),
+                  className: "inline-flex items-center gap-1.5 rounded-full gradient-brand px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60",
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "h-3.5 w-3.5" }),
+                    " ",
+                    t("post")
+                  ]
                 }
-              ),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 flex justify-end", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "inline-flex items-center gap-1.5 rounded-full gradient-brand px-4 py-2 text-xs font-semibold text-white", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx(Send, { className: "h-3.5 w-3.5" }),
-                " ",
-                t("post")
-              ] }) })
+              ) })
             ] })
           ] }),
-          /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "mt-6 space-y-5", children: sampleComments.map((c, i) => /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex gap-3", children: [
-            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary", children: c.name.slice(0, 2) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx("ul", { className: "mt-6 space-y-5", children: topLevelComments.map((comment) => /* @__PURE__ */ jsxRuntimeExports.jsxs("li", { className: "flex gap-3", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "grid h-9 w-9 shrink-0 place-items-center rounded-full bg-primary/10 text-xs font-bold text-primary", children: comment.authorName.slice(0, 2).toUpperCase() }),
             /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "min-w-0", children: [
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-sm", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: lang === "am" ? c.nameAm : c.name }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: comment.authorName }),
                 /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-muted-foreground", children: [
                   "· ",
-                  c.time
+                  comment.createdAtLabel
                 ] })
               ] }),
-              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-0.5 text-sm", children: lang === "am" ? c.textAm : c.text }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-0.5 text-sm", children: comment.message }),
               /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "mt-1 flex items-center gap-3 text-xs text-muted-foreground", children: [
-                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { className: "hover:text-foreground", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => void handleCommentLike(comment.id), className: "hover:text-foreground", children: [
                   /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: "inline h-3 w-3" }),
-                  " 12"
+                  " ",
+                  comment.likes
                 ] }),
-                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Reply", am: "ምላሽ" }) })
-              ] })
+                /* @__PURE__ */ jsxRuntimeExports.jsx("button", { type: "button", onClick: () => setReplyingToId(comment.id), className: "hover:text-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Bi, { en: "Reply", am: "ምላሽ" }) })
+              ] }),
+              getReplies(comment.id).length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-4 space-y-3 border-l border-border pl-4", children: getReplies(comment.id).map((reply) => /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "rounded-xl border border-border/70 p-3", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 text-sm", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-semibold", children: reply.authorName }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-xs text-muted-foreground", children: [
+                    "· ",
+                    reply.createdAtLabel
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "mt-1 text-sm", children: reply.message }),
+                /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "mt-2 flex items-center gap-3 text-xs text-muted-foreground", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("button", { type: "button", onClick: () => void handleCommentLike(reply.id), className: "hover:text-foreground", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx(ThumbsUp, { className: "inline h-3 w-3" }),
+                  " ",
+                  reply.likes
+                ] }) })
+              ] }, reply.id)) })
             ] })
-          ] }, i)) })
+          ] }, comment.id)) })
         ] })
       ] }),
       /* @__PURE__ */ jsxRuntimeExports.jsxs("aside", { children: [

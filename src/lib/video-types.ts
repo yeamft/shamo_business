@@ -32,6 +32,17 @@ export type AdminPost = Video & {
   source: "seed" | "admin";
 };
 
+export type VideoComment = {
+  id: string;
+  videoId: string;
+  authorName: string;
+  message: string;
+  createdAt: string;
+  createdAtLabel: string;
+  likes: number;
+  parentId?: string | null;
+};
+
 export type Registration = {
   id: string;
   createdAt: string;

@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import type { AdminSettings, FormState } from "@/lib/admin-data";
 import { getSupabaseServerClient } from "@/lib/supabase.server";
-import type { AdminPost, PostStatus, SocialPlatform, Video, VideoCategory } from "@/lib/video-types";
+import type { AdminPost, PostStatus, SocialPlatform, Video, VideoCategory, VideoComment } from "@/lib/video-types";
 
 const settingsSchema = z.object({
   siteTitle: z.string().min(1),
@@ -26,6 +26,36 @@ const formSchema = z.object({
 });
 
 const fallbackThumb = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80";
+
+function getRelativeTimeLabel(createdAt: string) {
+  const createdTime = new Date(createdAt).getTime();
+  const now = Date.now();
+
+  if (Number.isNaN(createdTime)) return "Just now";
+
+  const diffMinutes = Math.max(0, Math.floor((now - createdTime) / 60000));
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+
+function mapVideoCommentRow(comment: Record<string, any>): VideoComment {
+  return {
+    id: comment.id,
+    videoId: comment.video_id,
+    authorName: comment.author_name,
+    message: comment.message,
+    createdAt: comment.created_at,
+    createdAtLabel: getRelativeTimeLabel(comment.created_at),
+    likes: comment.likes ?? 0,
+    parentId: comment.parent_id ?? null,
+  } satisfies VideoComment;
+}
 
 function normalizeYouTubeEmbedUrl(youtubeUrl?: string) {
   if (!youtubeUrl) return "https://www.youtube.com/embed/NMYWBOTeg1I";
@@ -120,9 +150,18 @@ export const getAdminSnapshot = createServerFn({ method: "GET" }).handler(async 
       registrations?.map((item) => ({
         id: item.id,
         name: item.name,
+        firstName: item.first_name,
+        lastName: item.last_name,
+        gender: item.gender,
+        age: item.age,
+        lastWorkedIn: item.last_worked_in,
         profession: item.profession,
         phone: item.phone,
+        mobile1: item.mobile1,
+        mobile2: item.mobile2,
         subCity: item.sub_city,
+        hasJob: item.has_job,
+        createdAt: item.created_at,
         status: item.status,
       })) ?? [],
     settings: {
@@ -218,6 +257,105 @@ export const getPublicVideoById = createServerFn({ method: "GET" })
       .maybeSingle();
 
     return post ? (mapVideoRow(post) as Video) : null;
+  });
+
+export const getVideoComments = createServerFn({ method: "GET" })
+  .validator(z.object({ videoId: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: comments, error } = await supabase
+      .from("video_comments")
+      .select("*")
+      .eq("video_id", data.videoId)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      return [] as VideoComment[];
+    }
+
+    return (comments?.map(mapVideoCommentRow) ?? []) as VideoComment[];
+  });
+
+export const createVideoComment = createServerFn({ method: "POST" })
+  .validator(
+    z.object({
+      videoId: z.string(),
+      authorName: z.string().trim().min(1).max(80),
+      message: z.string().trim().min(1).max(1000),
+      parentId: z.string().optional(),
+    }),
+  )
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const payload = {
+      id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      video_id: data.videoId,
+      author_name: data.authorName.trim(),
+      message: data.message.trim(),
+      parent_id: data.parentId ?? null,
+      likes: 0,
+    };
+
+    const { data: inserted, error } = await supabase.from("video_comments").insert(payload).select("*").single();
+
+    if (error) {
+      throw error;
+    }
+
+    return mapVideoCommentRow(inserted);
+  });
+
+export const likeVideoComment = createServerFn({ method: "POST" })
+  .validator(z.object({ commentId: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: currentComment, error: fetchError } = await supabase
+      .from("video_comments")
+      .select("id, likes")
+      .eq("id", data.commentId)
+      .maybeSingle();
+
+    if (fetchError || !currentComment) {
+      throw fetchError ?? new Error("Comment not found");
+    }
+
+    const nextLikes = (currentComment.likes ?? 0) + 1;
+    const { data: updatedComment, error: updateError } = await supabase
+      .from("video_comments")
+      .update({ likes: nextLikes })
+      .eq("id", data.commentId)
+      .select("*")
+      .single();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return mapVideoCommentRow(updatedComment);
+  });
+
+export const incrementVideoViews = createServerFn({ method: "POST" })
+  .validator(z.object({ videoId: z.string() }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: currentVideo, error: fetchError } = await supabase
+      .from("admin_videos")
+      .select("id, views")
+      .eq("id", data.videoId)
+      .maybeSingle();
+
+    if (fetchError || !currentVideo) {
+      throw fetchError ?? new Error("Video not found");
+    }
+
+    const nextViews = (currentVideo.views ?? 0) + 1;
+    const { error: updateError } = await supabase.from("admin_videos").update({ views: nextViews }).eq("id", data.videoId);
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    return { videoId: data.videoId, views: nextViews };
   });
 
 export const updateAdminPostStatus = createServerFn({ method: "POST" })

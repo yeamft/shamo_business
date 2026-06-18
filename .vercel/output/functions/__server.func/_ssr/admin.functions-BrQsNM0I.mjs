@@ -1,4 +1,4 @@
-import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-r2qRflVP.mjs";
+import { T as TSS_SERVER_FUNCTION, c as createServerFn } from "./server-La95DZ7K.mjs";
 import { S as Socket, P as Presence } from "../_libs/supabase__phoenix.mjs";
 import { I as IcebergRestCatalog } from "../_libs/iceberg-js.mjs";
 import "../_libs/seroval.mjs";
@@ -19262,6 +19262,30 @@ const formSchema = objectType({
   shareTo: arrayType(enumType(["YouTube", "TikTok", "Instagram", "Facebook"]))
 });
 const fallbackThumb = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80";
+function getRelativeTimeLabel(createdAt) {
+  const createdTime = new Date(createdAt).getTime();
+  const now = Date.now();
+  if (Number.isNaN(createdTime)) return "Just now";
+  const diffMinutes = Math.max(0, Math.floor((now - createdTime) / 6e4));
+  if (diffMinutes < 1) return "Just now";
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  const diffDays = Math.floor(diffHours / 24);
+  return `${diffDays}d ago`;
+}
+function mapVideoCommentRow(comment) {
+  return {
+    id: comment.id,
+    videoId: comment.video_id,
+    authorName: comment.author_name,
+    message: comment.message,
+    createdAt: comment.created_at,
+    createdAtLabel: getRelativeTimeLabel(comment.created_at),
+    likes: comment.likes ?? 0,
+    parentId: comment.parent_id ?? null
+  };
+}
 function normalizeYouTubeEmbedUrl(youtubeUrl) {
   if (!youtubeUrl) return "https://www.youtube.com/embed/NMYWBOTeg1I";
   const embedMatch = youtubeUrl.match(/youtube\.com\/embed\/([^?&/]+)/i);
@@ -19368,9 +19392,18 @@ const getAdminSnapshot = createServerFn({
     registrations: registrations?.map((item) => ({
       id: item.id,
       name: item.name,
+      firstName: item.first_name,
+      lastName: item.last_name,
+      gender: item.gender,
+      age: item.age,
+      lastWorkedIn: item.last_worked_in,
       profession: item.profession,
       phone: item.phone,
+      mobile1: item.mobile1,
+      mobile2: item.mobile2,
       subCity: item.sub_city,
+      hasJob: item.has_job,
+      createdAt: item.created_at,
       status: item.status
     })) ?? [],
     settings: {
@@ -19477,6 +19510,129 @@ const getPublicVideoById = createServerFn({
     data: post2
   } = await supabase.from("admin_videos").select("*").eq("id", data.id).maybeSingle();
   return post2 ? mapVideoRow(post2) : null;
+});
+const getVideoComments_createServerFn_handler = createServerRpc({
+  id: "8fb8ec4362f7c28347f92ba88a52775702ae0a9b0477ea9a9c5486a73b41998f",
+  name: "getVideoComments",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => getVideoComments.__executeServer(opts));
+const getVideoComments = createServerFn({
+  method: "GET"
+}).validator(objectType({
+  videoId: stringType()
+})).handler(getVideoComments_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: comments,
+    error
+  } = await supabase.from("video_comments").select("*").eq("video_id", data.videoId).order("created_at", {
+    ascending: false
+  });
+  if (error) {
+    return [];
+  }
+  return comments?.map(mapVideoCommentRow) ?? [];
+});
+const createVideoComment_createServerFn_handler = createServerRpc({
+  id: "f0a188d77d6db038f1c86f50937f926f5cd14734a018a8390ba00231fe537a87",
+  name: "createVideoComment",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => createVideoComment.__executeServer(opts));
+const createVideoComment = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  videoId: stringType(),
+  authorName: stringType().trim().min(1).max(80),
+  message: stringType().trim().min(1).max(1e3),
+  parentId: stringType().optional()
+})).handler(createVideoComment_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const payload = {
+    id: `comment-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    video_id: data.videoId,
+    author_name: data.authorName.trim(),
+    message: data.message.trim(),
+    parent_id: data.parentId ?? null,
+    likes: 0
+  };
+  const {
+    data: inserted,
+    error
+  } = await supabase.from("video_comments").insert(payload).select("*").single();
+  if (error) {
+    throw error;
+  }
+  return mapVideoCommentRow(inserted);
+});
+const likeVideoComment_createServerFn_handler = createServerRpc({
+  id: "40b285feb05234d3b74af6cd7924471cda6a37a582710f2fbf5eeff7f4bf9979",
+  name: "likeVideoComment",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => likeVideoComment.__executeServer(opts));
+const likeVideoComment = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  commentId: stringType()
+})).handler(likeVideoComment_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: currentComment,
+    error: fetchError
+  } = await supabase.from("video_comments").select("id, likes").eq("id", data.commentId).maybeSingle();
+  if (fetchError || !currentComment) {
+    throw fetchError ?? new Error("Comment not found");
+  }
+  const nextLikes = (currentComment.likes ?? 0) + 1;
+  const {
+    data: updatedComment,
+    error: updateError
+  } = await supabase.from("video_comments").update({
+    likes: nextLikes
+  }).eq("id", data.commentId).select("*").single();
+  if (updateError) {
+    throw updateError;
+  }
+  return mapVideoCommentRow(updatedComment);
+});
+const incrementVideoViews_createServerFn_handler = createServerRpc({
+  id: "87a8b613d9331885fd0c2a55c5ac45bcf26e714107d7c799146eb7a9ec1d4e9b",
+  name: "incrementVideoViews",
+  filename: "src/lib/api/admin.functions.ts"
+}, (opts) => incrementVideoViews.__executeServer(opts));
+const incrementVideoViews = createServerFn({
+  method: "POST"
+}).validator(objectType({
+  videoId: stringType()
+})).handler(incrementVideoViews_createServerFn_handler, async ({
+  data
+}) => {
+  const supabase = getSupabaseServerClient();
+  const {
+    data: currentVideo,
+    error: fetchError
+  } = await supabase.from("admin_videos").select("id, views").eq("id", data.videoId).maybeSingle();
+  if (fetchError || !currentVideo) {
+    throw fetchError ?? new Error("Video not found");
+  }
+  const nextViews = (currentVideo.views ?? 0) + 1;
+  const {
+    error: updateError
+  } = await supabase.from("admin_videos").update({
+    views: nextViews
+  }).eq("id", data.videoId);
+  if (updateError) {
+    throw updateError;
+  }
+  return {
+    videoId: data.videoId,
+    views: nextViews
+  };
 });
 const updateAdminPostStatus_createServerFn_handler = createServerRpc({
   id: "486835fefadcd7dc9cbc31c28ef0af78dc9582f018ec6de8c6f2171f69d48d22",
@@ -19607,10 +19763,14 @@ const submitJobRegistration = createServerFn({
 export {
   adminLogin_createServerFn_handler,
   createAdminPost_createServerFn_handler,
+  createVideoComment_createServerFn_handler,
   deleteAdminPost_createServerFn_handler,
   getAdminSnapshot_createServerFn_handler,
   getPublicVideoById_createServerFn_handler,
   getPublicVideos_createServerFn_handler,
+  getVideoComments_createServerFn_handler,
+  incrementVideoViews_createServerFn_handler,
+  likeVideoComment_createServerFn_handler,
   markAdminRegistrationReviewed_createServerFn_handler,
   saveAdminSettings_createServerFn_handler,
   submitJobRegistration_createServerFn_handler,
