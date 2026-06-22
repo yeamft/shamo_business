@@ -3,9 +3,10 @@ import { MessageSquareMore, Trash2 } from "lucide-react";
 import { useMemo, useState } from "react";
 
 import { AdminShell } from "@/components/admin-shell";
+import { getCategoryLabel } from "@/lib/categories";
 import { useRequireAdmin } from "@/lib/admin-guard";
-import { categories, getStatusClasses, useAdminData } from "@/lib/admin-data";
-import { dict, useLang } from "@/lib/i18n";
+import { getStatusClasses, useAdminData } from "@/lib/admin-data";
+import { useLang } from "@/lib/i18n";
 import { formatViews } from "@/lib/videos";
 
 export const Route = createFileRoute("/admin/videos")({
@@ -29,7 +30,7 @@ function getComments(postTitle: string, postId: string) {
 
 function RouteComponent() {
   const { isAuthenticated } = useRequireAdmin();
-  const { posts, updatePostStatus, deletePost } = useAdminData();
+  const { posts, categories, updatePostStatus, deletePost } = useAdminData();
   const { lang } = useLang();
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [expandedCommentsPostId, setExpandedCommentsPostId] = useState<string | null>(null);
@@ -67,8 +68,8 @@ function RouteComponent() {
           <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} className="h-11 rounded-xl border border-input bg-background px-3 text-sm">
             <option value="all">All categories</option>
             {categories.map((category) => (
-              <option key={category} value={category}>
-                {dict[category].en}
+              <option key={category.id} value={category.id}>
+                {getCategoryLabel(category.id, categories, "en")}
               </option>
             ))}
           </select>
@@ -104,7 +105,7 @@ function RouteComponent() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 pr-3">{dict[post.category].en}</td>
+                    <td className="py-4 pr-3">{getCategoryLabel(post.category, categories, "en")}</td>
                     <td className="py-4 pr-3">{formatViews(post.views)}</td>
                     <td className="py-4 pr-3">
                       <button

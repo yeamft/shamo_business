@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
 import { VideoCarousel } from "@/components/video-carousel";
-import { getPublicVideos } from "@/lib/api/admin.functions";
+import { getPublicCategories, getPublicVideos } from "@/lib/api/admin.functions";
+import { getCategoryLabel } from "@/lib/categories";
 import { Bi, useLang, dict } from "@/lib/i18n";
-import { categories, getVideo } from "@/lib/videos";
+import { getVideo } from "@/lib/videos";
 import { ArrowRight, Play, TrendingUp, Building2, Lightbulb, Briefcase } from "lucide-react";
 
 export const Route = createFileRoute("/")({
-  loader: async () => ({ videos: await getPublicVideos() }),
+  loader: async () => {
+    const [videos, categories] = await Promise.all([getPublicVideos(), getPublicCategories()]);
+    return { videos, categories };
+  },
   head: () => ({
     meta: [
       { title: "Shamo Business Portal · ሻሞ ቢዝነስ ፖርታል" },
@@ -16,13 +20,6 @@ export const Route = createFileRoute("/")({
   }),
   component: Home,
 });
-
-const stats = [
-  { en: "Videos", am: "ቪዲዮዎች", v: "1,240+" },
-  { en: "Categories", am: "ምድቦች", v: "6" },
-  { en: "Monthly Viewers", am: "ወርሃዊ ተመልካቾች", v: "85K" },
-  { en: "Industrial Zones", am: "ኢንዱስትሪ ዞኖች", v: "12" },
-];
 
 const highlights = [
   { Icon: TrendingUp, en: "Business Opportunities", am: "የቢዝነስ እድሎች", desc_en: "Real, vetted sectors with growth potential.", desc_am: "ትክክለኛ የእድገት ዘርፎች።" },
@@ -36,12 +33,21 @@ function isYouTubeUrl(url?: string) {
 }
 
 function Home() {
-  const { videos } = Route.useLoaderData();
+  const { videos, categories } = Route.useLoaderData();
   const { lang, t } = useLang();
   const featuredVideo = videos[0] ?? getVideo("cat_invest-0");
   const featuredVideoEmbed = featuredVideo.youtubeUrl ?? "https://www.youtube.com/embed/NMYWBOTeg1I";
-  const featuredCategory = dict[featuredVideo.category] ?? { en: "Latest Video", am: "የቅርብ ቪዲዮ" };
+  const featuredCategory = {
+    en: getCategoryLabel(featuredVideo.category, categories, "en"),
+    am: getCategoryLabel(featuredVideo.category, categories, "am"),
+  };
   const featuredUsesIframe = isYouTubeUrl(featuredVideoEmbed);
+  const stats = [
+    { en: "Videos", am: "ቪዲዮዎች", v: `${videos.length}+` },
+    { en: "Categories", am: "ምድቦች", v: `${categories.length}` },
+    { en: "Monthly Viewers", am: "ወርሃዊ ተመልካቾች", v: "85K" },
+    { en: "Industrial Zones", am: "ኢንዱስትሪ ዞኖች", v: `${videos.filter((video) => video.category === "cat_zones").length}` },
+  ];
 
   return (
     <div className="min-h-screen bg-background">
@@ -140,8 +146,14 @@ function Home() {
         </div>
       </section>
 
-      {categories.map((c) => (
-        <VideoCarousel key={c} category={c} titleEn={dict[c].en} titleAm={dict[c].am} items={videos.filter((video) => video.category === c)} />
+      {categories.map((category) => (
+        <VideoCarousel
+          key={category.id}
+          category={category.id}
+          titleEn={category.nameEn}
+          titleAm={category.nameAm}
+          items={videos.filter((video) => video.category === category.id)}
+        />
       ))}
 
       <section className="mx-auto mt-20 max-w-7xl px-4 sm:px-6 lg:px-8">

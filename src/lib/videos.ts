@@ -1,4 +1,4 @@
-import type { DictKey } from "./i18n";
+import { seedCategories } from "./categories";
 
 export type Video = {
   id: string;
@@ -10,7 +10,7 @@ export type Video = {
   views: number;
   channel: string;
   channelAm: string;
-  category: DictKey;
+  category: string;
   postedDays: number;
 };
 
@@ -49,7 +49,7 @@ const thumbs = [
 
 type Seed = Omit<Video, "id" | "thumb">;
 
-const seeds: Record<Exclude<DictKey, "brand" | "tagline" | "home" | "about" | "categories" | "contact" | "admin" | "register" | "recently" | "viewMore" | "views" | "like" | "share" | "subscribe" | "download" | "regLink" | "comments" | "addComment" | "post" | "searchPlaceholder" | "heroCta" | "heroCta2" | "footer_rights">, Seed[]> = {
+const seeds: Record<string, Seed[]> = {
   cat_opp: [
     { titleEn: "Coffee Export Opportunities in 2026", titleAm: "የቡና ኤክስፖርት እድሎች በ2026", duration: "12:45", views: 24300, channel: "Shamo Business", channelAm: "ሻሞ ቢዝነስ", category: "cat_opp", postedDays: 2 },
     { titleEn: "Textile Manufacturing in Hawassa", titleAm: "በሐዋሳ የጨርቃጨርቅ ምርት", duration: "08:21", views: 15820, channel: "Shamo Business", channelAm: "ሻሞ ቢዝነስ", category: "cat_opp", postedDays: 4 },
@@ -103,10 +103,10 @@ export const videos: Video[] = Object.entries(seeds).flatMap(([cat, list]) =>
   })),
 );
 
-export const categories: DictKey[] = ["cat_opp", "cat_idea", "cat_sol", "cat_invest", "cat_zones", "cat_orgs"];
+export const categories: string[] = seedCategories.map((category) => category.id);
 
 export const getVideo = (id: string) => videos.find((v) => v.id === id) ?? videos[0];
-export const getByCategory = (cat: DictKey) => videos.filter((v) => v.category === cat);
+export const getByCategory = (cat: string) => videos.filter((v) => v.category === cat);
 
 export const formatViews = (n: number) =>
   n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}K` : `${n}`;

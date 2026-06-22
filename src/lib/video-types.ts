@@ -1,9 +1,16 @@
-import type { DictKey } from "./i18n";
+export type VideoCategory = string;
 
-export type VideoCategory = Extract<
-  DictKey,
-  "cat_opp" | "cat_idea" | "cat_sol" | "cat_invest" | "cat_zones" | "cat_orgs"
->;
+export type AdminCategory = {
+  id: string;
+  slug: string;
+  nameEn: string;
+  nameAm: string;
+  descriptionEn?: string;
+  descriptionAm?: string;
+  createdAt?: string;
+  videoCount?: number;
+  source?: "seed" | "admin";
+};
 
 export type Video = {
   id: string;

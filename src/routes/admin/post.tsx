@@ -1,12 +1,12 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useState } from "react";
 
 import { AdminShell } from "@/components/admin-shell";
 import { uploadAdminThumbnailFile, uploadAdminVideoFile } from "@/lib/api/admin.functions";
+import { getCategoryLabel } from "@/lib/categories";
 import { useRequireAdmin } from "@/lib/admin-guard";
-import { categories, emptyAdminForm, useAdminData, type FormState } from "@/lib/admin-data";
-import { dict } from "@/lib/i18n";
+import { emptyAdminForm, useAdminData, type FormState } from "@/lib/admin-data";
 import type { SocialPlatform } from "@/lib/video-types";
 
 export const Route = createFileRoute("/admin/post")({
@@ -40,7 +40,7 @@ function fileToBase64(file: File) {
 
 function RouteComponent() {
   const { isAuthenticated } = useRequireAdmin();
-  const { createPost, settings } = useAdminData();
+  const { createPost, settings, categories } = useAdminData();
   const [form, setForm] = useState<FormState>(emptyAdminForm);
   const [feedback, setFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
   const [isUploadingFile, setIsUploadingFile] = useState(false);
@@ -151,6 +151,9 @@ function RouteComponent() {
           <p className="mt-2 text-sm text-muted-foreground">
             Fill in the publishing details, then save as draft, schedule it, or publish immediately.
           </p>
+          <Link to="/admin/categories" className="mt-3 inline-block text-sm font-semibold text-primary hover:underline">
+            Manage categories →
+          </Link>
         </div>
 
         <div className="mt-6 grid gap-5 md:grid-cols-2">
@@ -196,8 +199,8 @@ function RouteComponent() {
             >
               <option value="">Select a category</option>
               {categories.map((category) => (
-                <option key={category} value={category}>
-                  {dict[category].en}
+                <option key={category.id} value={category.id}>
+                  {getCategoryLabel(category.id, categories, "en")}
                 </option>
               ))}
             </select>

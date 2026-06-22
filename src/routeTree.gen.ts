@@ -21,7 +21,9 @@ import { Route as AdminSettingsRouteImport } from './routes/admin/settings'
 import { Route as AdminRegistrationsRouteImport } from './routes/admin/registrations'
 import { Route as AdminPostRouteImport } from './routes/admin/post'
 import { Route as AdminDashboardRouteImport } from './routes/admin/dashboard'
+import { Route as AdminCategoriesRouteImport } from './routes/admin/categories'
 import { Route as AdminAnalyticsRouteImport } from './routes/admin/analytics'
+import { Route as AdminCategoriesCategoryIdRouteImport } from './routes/admin/categories.$categoryId'
 
 const RegisterRoute = RegisterRouteImport.update({
   id: '/register',
@@ -83,11 +85,22 @@ const AdminDashboardRoute = AdminDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
+  id: '/categories',
+  path: '/categories',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminAnalyticsRoute = AdminAnalyticsRouteImport.update({
   id: '/analytics',
   path: '/analytics',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminCategoriesCategoryIdRoute =
+  AdminCategoriesCategoryIdRouteImport.update({
+    id: '/$categoryId',
+    path: '/$categoryId',
+    getParentRoute: () => AdminCategoriesRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,12 +110,14 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
   '/admin/registrations': typeof AdminRegistrationsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
+  '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -112,12 +127,14 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
   '/admin/registrations': typeof AdminRegistrationsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
+  '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -128,12 +145,14 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/register': typeof RegisterRoute
   '/admin/analytics': typeof AdminAnalyticsRoute
+  '/admin/categories': typeof AdminCategoriesRouteWithChildren
   '/admin/dashboard': typeof AdminDashboardRoute
   '/admin/post': typeof AdminPostRoute
   '/admin/registrations': typeof AdminRegistrationsRoute
   '/admin/settings': typeof AdminSettingsRoute
   '/admin/videos': typeof AdminVideosRoute
   '/video/$videoId': typeof VideoVideoIdRoute
+  '/admin/categories/$categoryId': typeof AdminCategoriesCategoryIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -145,12 +164,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/register'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/post'
     | '/admin/registrations'
     | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
+    | '/admin/categories/$categoryId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -160,12 +181,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/register'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/post'
     | '/admin/registrations'
     | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
+    | '/admin/categories/$categoryId'
   id:
     | '__root__'
     | '/'
@@ -175,12 +198,14 @@ export interface FileRouteTypes {
     | '/contact'
     | '/register'
     | '/admin/analytics'
+    | '/admin/categories'
     | '/admin/dashboard'
     | '/admin/post'
     | '/admin/registrations'
     | '/admin/settings'
     | '/admin/videos'
     | '/video/$videoId'
+    | '/admin/categories/$categoryId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -279,6 +304,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminDashboardRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories': {
+      id: '/admin/categories'
+      path: '/categories'
+      fullPath: '/admin/categories'
+      preLoaderRoute: typeof AdminCategoriesRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/analytics': {
       id: '/admin/analytics'
       path: '/analytics'
@@ -286,11 +318,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminAnalyticsRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/categories/$categoryId': {
+      id: '/admin/categories/$categoryId'
+      path: '/$categoryId'
+      fullPath: '/admin/categories/$categoryId'
+      preLoaderRoute: typeof AdminCategoriesCategoryIdRouteImport
+      parentRoute: typeof AdminCategoriesRoute
+    }
   }
 }
 
+interface AdminCategoriesRouteChildren {
+  AdminCategoriesCategoryIdRoute: typeof AdminCategoriesCategoryIdRoute
+}
+
+const AdminCategoriesRouteChildren: AdminCategoriesRouteChildren = {
+  AdminCategoriesCategoryIdRoute: AdminCategoriesCategoryIdRoute,
+}
+
+const AdminCategoriesRouteWithChildren = AdminCategoriesRoute._addFileChildren(
+  AdminCategoriesRouteChildren,
+)
+
 interface AdminRouteChildren {
   AdminAnalyticsRoute: typeof AdminAnalyticsRoute
+  AdminCategoriesRoute: typeof AdminCategoriesRouteWithChildren
   AdminDashboardRoute: typeof AdminDashboardRoute
   AdminPostRoute: typeof AdminPostRoute
   AdminRegistrationsRoute: typeof AdminRegistrationsRoute
@@ -300,6 +352,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminAnalyticsRoute: AdminAnalyticsRoute,
+  AdminCategoriesRoute: AdminCategoriesRouteWithChildren,
   AdminDashboardRoute: AdminDashboardRoute,
   AdminPostRoute: AdminPostRoute,
   AdminRegistrationsRoute: AdminRegistrationsRoute,

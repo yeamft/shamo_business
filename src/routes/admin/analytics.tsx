@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { AdminShell } from "@/components/admin-shell";
+import { getCategoryLabel } from "@/lib/categories";
 import { useRequireAdmin } from "@/lib/admin-guard";
 import { getCategoryBreakdown, getDashboardSummary, useAdminData } from "@/lib/admin-data";
-import { Bi, dict } from "@/lib/i18n";
+import { Bi } from "@/lib/i18n";
 import { formatViews } from "@/lib/videos";
 
 export const Route = createFileRoute("/admin/analytics")({
@@ -12,12 +13,12 @@ export const Route = createFileRoute("/admin/analytics")({
 
 function RouteComponent() {
   const { isAuthenticated, isReady } = useRequireAdmin();
-  const { posts, registrations } = useAdminData();
+  const { posts, registrations, categories } = useAdminData();
 
   if (!isReady || !isAuthenticated) return null;
 
-  const summary = getDashboardSummary(posts);
-  const breakdown = getCategoryBreakdown(posts);
+  const summary = getDashboardSummary(posts, categories);
+  const breakdown = getCategoryBreakdown(posts, categories);
   const topPosts = [...posts].sort((a, b) => b.views - a.views).slice(0, 5);
   const reviewedRate = registrations.length
     ? Math.round((registrations.filter((registration) => registration.status === "Reviewed").length / registrations.length) * 100)
@@ -42,7 +43,7 @@ function RouteComponent() {
             {breakdown.map((item) => (
               <div key={item.category}>
                 <div className="mb-1 flex items-center justify-between text-sm">
-                  <span><Bi en={dict[item.category].en} am={dict[item.category].am} /></span>
+                  <span><Bi en={item.labelEn} am={item.labelAm} /></span>
                   <span className="font-semibold">{item.total} videos</span>
                 </div>
                 <div className="h-3 overflow-hidden rounded-full bg-muted">
@@ -70,7 +71,7 @@ function RouteComponent() {
               {topPosts.map((post) => (
                 <tr key={post.id} className="border-b border-border/60 last:border-0">
                   <td className="py-3 font-semibold">{post.titleEn}</td>
-                  <td className="py-3">{dict[post.category].en}</td>
+                  <td className="py-3">{getCategoryLabel(post.category, categories, "en")}</td>
                   <td className="py-3">{formatViews(post.views)}</td>
                   <td className="py-3">{post.status}</td>
                 </tr>

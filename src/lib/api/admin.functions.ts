@@ -2,8 +2,9 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import type { AdminSettings, FormState } from "@/lib/admin-data";
+import { mergeCategories, slugifyCategoryName } from "@/lib/categories";
 import { getSupabaseServerClient } from "@/lib/supabase.server";
-import type { AdminPost, PostStatus, SocialPlatform, Video, VideoCategory, VideoComment } from "@/lib/video-types";
+import type { AdminCategory, AdminPost, PostStatus, SocialPlatform, Video, VideoCategory, VideoComment } from "@/lib/video-types";
 
 const settingsSchema = z.object({
   siteTitle: z.string().min(1),
@@ -31,6 +32,15 @@ const uploadVideoSchema = z.object({
   fileName: z.string().min(1),
   contentType: z.string().min(1),
   base64: z.string().min(1),
+});
+
+const categorySchema = z.object({
+  id: z.string().trim().min(1),
+  slug: z.string().trim().min(1),
+  nameEn: z.string().trim().min(1),
+  nameAm: z.string().trim().min(1),
+  descriptionEn: z.string().trim(),
+  descriptionAm: z.string().trim(),
 });
 
 const fallbackThumb = "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80";
@@ -132,6 +142,23 @@ function mapVideoRow(post: Record<string, any>): AdminPost {
   } satisfies AdminPost;
 }
 
+function mapCategoryRow(category: Record<string, any>): AdminCategory {
+  return {
+    id: category.id,
+    slug: category.slug,
+    nameEn: category.name_en,
+    nameAm: category.name_am,
+    descriptionEn: category.description_en ?? "",
+    descriptionAm: category.description_am ?? "",
+    createdAt: category.created_at,
+    source: "admin",
+  } satisfies AdminCategory;
+}
+
+function isMissingAdminCategoriesTableError(error: unknown) {
+  return !!error && typeof error === "object" && "code" in error && (error as { code?: string }).code === "PGRST205";
+}
+
 export const adminLogin = createServerFn({ method: "POST" })
   .validator(z.object({ username: z.string(), password: z.string() }))
   .handler(async ({ data }) => {
@@ -148,14 +175,21 @@ export const adminLogin = createServerFn({ method: "POST" })
 export const getAdminSnapshot = createServerFn({ method: "GET" }).handler(async () => {
   const supabase = getSupabaseServerClient();
 
-  const [{ data: posts }, { data: registrations }, { data: settingsRow }] = await Promise.all([
+  const [{ data: posts }, { data: registrations }, { data: settingsRow }, categoriesResult] = await Promise.all([
     supabase.from("admin_videos").select("*").order("inserted_at", { ascending: false }),
     supabase.from("job_registrations").select("*").order("created_at", { ascending: false }),
     supabase.from("admin_settings").select("*").eq("id", 1).single(),
+    supabase.from("admin_categories").select("*").order("created_at", { ascending: true }),
   ]);
 
+  const mappedPosts = posts?.map(mapVideoRow) ?? [];
+  const mappedCategories = isMissingAdminCategoriesTableError(categoriesResult.error)
+    ? []
+    : categoriesResult.data?.map(mapCategoryRow) ?? [];
+
   return {
-    posts: posts?.map(mapVideoRow) ?? [],
+    posts: mappedPosts,
+    categories: mergeCategories(mappedCategories, mappedPosts),
     registrations:
       registrations?.map((item) => ({
         id: item.id,
@@ -308,6 +342,21 @@ export const getPublicVideos = createServerFn({ method: "GET" }).handler(async (
   return (data?.map(mapVideoRow) ?? []) as Video[];
 });
 
+export const getPublicCategories = createServerFn({ method: "GET" }).handler(async () => {
+  const supabase = getSupabaseServerClient();
+
+  const [{ data: videos }, categoriesResult] = await Promise.all([
+    supabase.from("admin_videos").select("category").eq("status", "Published"),
+    supabase.from("admin_categories").select("*").order("created_at", { ascending: true }),
+  ]);
+
+  if (isMissingAdminCategoriesTableError(categoriesResult.error)) {
+    return mergeCategories([], (videos ?? []) as Array<{ category: string }>);
+  }
+
+  return mergeCategories(categoriesResult.data?.map(mapCategoryRow) ?? [], (videos ?? []) as Array<{ category: string }>);
+});
+
 export const getPublicVideoById = createServerFn({ method: "GET" })
   .validator(z.object({ id: z.string() }))
   .handler(async ({ data }) => {
@@ -433,6 +482,86 @@ export const deleteAdminPost = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const supabase = getSupabaseServerClient();
     await supabase.from("admin_videos").delete().eq("id", data.postId);
+    return { ok: true as const };
+  });
+
+export const createAdminCategory = createServerFn({ method: "POST" })
+  .validator(categorySchema)
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { data: category, error } = await supabase
+      .from("admin_categories")
+      .upsert({
+        id: data.id,
+        slug: data.slug || slugifyCategoryName(data.nameEn),
+        name_en: data.nameEn,
+        name_am: data.nameAm,
+        description_en: data.descriptionEn,
+        description_am: data.descriptionAm,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      if (isMissingAdminCategoriesTableError(error)) {
+        throw new Error("The admin_categories table is missing. Please run the SQL in supabase-admin-schema.sql and refresh the app.");
+      }
+      throw error;
+    }
+
+    return { ok: true as const, category: mapCategoryRow(category) };
+  });
+
+export const updateAdminCategory = createServerFn({ method: "POST" })
+  .validator(categorySchema.extend({ categoryId: z.string().trim().min(1) }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+
+    if (data.categoryId !== data.id) {
+      await supabase.from("admin_videos").update({ category: data.id }).eq("category", data.categoryId);
+      await supabase.from("admin_categories").delete().eq("id", data.categoryId);
+    }
+
+    const { data: category, error } = await supabase
+      .from("admin_categories")
+      .upsert({
+        id: data.id,
+        slug: data.slug || slugifyCategoryName(data.nameEn),
+        name_en: data.nameEn,
+        name_am: data.nameAm,
+        description_en: data.descriptionEn,
+        description_am: data.descriptionAm,
+      })
+      .select("*")
+      .single();
+
+    if (error) {
+      if (isMissingAdminCategoriesTableError(error)) {
+        throw new Error("The admin_categories table is missing. Please run the SQL in supabase-admin-schema.sql and refresh the app.");
+      }
+      throw error;
+    }
+
+    return { ok: true as const, category: mapCategoryRow(category) };
+  });
+
+export const deleteAdminCategory = createServerFn({ method: "POST" })
+  .validator(z.object({ categoryId: z.string().trim().min(1) }))
+  .handler(async ({ data }) => {
+    const supabase = getSupabaseServerClient();
+    const { count } = await supabase.from("admin_videos").select("id", { count: "exact", head: true }).eq("category", data.categoryId);
+
+    if ((count ?? 0) > 0) {
+      throw new Error("Cannot delete a category that is used by videos.");
+    }
+
+    const { error } = await supabase.from("admin_categories").delete().eq("id", data.categoryId);
+    if (error) {
+      if (isMissingAdminCategoriesTableError(error)) {
+        throw new Error("The admin_categories table is missing. Please run the SQL in supabase-admin-schema.sql and refresh the app.");
+      }
+      throw error;
+    }
     return { ok: true as const };
   });
 

@@ -2,9 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { BarChart3, CheckCircle2, Clock3, Eye, FileText, FolderKanban, Users } from "lucide-react";
 
 import { AdminShell } from "@/components/admin-shell";
+import { getCategoryLabel } from "@/lib/categories";
 import { useRequireAdmin } from "@/lib/admin-guard";
 import { getCategoryBreakdown, getDashboardSummary, getStatusClasses, useAdminData } from "@/lib/admin-data";
-import { Bi, dict, useLang } from "@/lib/i18n";
+import { Bi, useLang } from "@/lib/i18n";
 import { formatViews } from "@/lib/videos";
 
 export const Route = createFileRoute("/admin/dashboard")({
@@ -13,14 +14,14 @@ export const Route = createFileRoute("/admin/dashboard")({
 
 function RouteComponent() {
   const { isAuthenticated, isReady } = useRequireAdmin();
-  const { posts, registrations } = useAdminData();
+  const { posts, registrations, categories } = useAdminData();
   const { lang } = useLang();
 
   if (!isReady || !isAuthenticated) return null;
 
-  const summary = getDashboardSummary(posts);
+  const summary = getDashboardSummary(posts, categories);
   const latestPosts = posts.slice(0, 5);
-  const categoryBreakdown = getCategoryBreakdown(posts);
+  const categoryBreakdown = getCategoryBreakdown(posts, categories);
   const newRegistrations = registrations.filter((registration) => registration.status === "New").length;
 
   const stats = [
@@ -69,7 +70,7 @@ function RouteComponent() {
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm font-bold">{lang === "am" ? post.titleAm : post.titleEn}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {dict[post.category].en} · {post.createdAtLabel} · {formatViews(post.views)} views
+                    {getCategoryLabel(post.category, categories, "en")} · {post.createdAtLabel} · {formatViews(post.views)} views
                   </div>
                 </div>
                 <span className={`w-fit rounded-full px-3 py-1 text-xs font-semibold ${getStatusClasses(post.status)}`}>
@@ -89,7 +90,7 @@ function RouteComponent() {
               {categoryBreakdown.map((item) => (
                 <div key={item.category}>
                   <div className="mb-1 flex items-center justify-between text-sm">
-                    <span><Bi en={dict[item.category].en} am={dict[item.category].am} /></span>
+                    <span><Bi en={item.labelEn} am={item.labelAm} /></span>
                     <span className="font-semibold">{item.total}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -108,6 +109,9 @@ function RouteComponent() {
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
               <Link to="/admin/videos" className="rounded-2xl border border-border bg-background p-4 text-sm font-semibold hover:bg-accent">
                 Manage videos
+              </Link>
+              <Link to="/admin/categories" className="rounded-2xl border border-border bg-background p-4 text-sm font-semibold hover:bg-accent">
+                Manage categories
               </Link>
               <Link to="/admin/registrations" className="rounded-2xl border border-border bg-background p-4 text-sm font-semibold hover:bg-accent">
                 Review registrations

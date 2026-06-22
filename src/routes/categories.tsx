@@ -1,13 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { SiteHeader, SiteFooter } from "@/components/site-chrome";
-import { getPublicVideos } from "@/lib/api/admin.functions";
-import { Bi, useLang, dict } from "@/lib/i18n";
-import { categories, formatViews } from "@/lib/videos";
+import { getPublicCategories, getPublicVideos } from "@/lib/api/admin.functions";
+import { getCategoryLabel } from "@/lib/categories";
+import { Bi, useLang } from "@/lib/i18n";
+import { formatViews } from "@/lib/videos";
 import { Eye, Play } from "lucide-react";
 import { useState } from "react";
 
 export const Route = createFileRoute("/categories")({
-  loader: async () => ({ videos: await getPublicVideos() }),
+  loader: async () => {
+    const [videos, categories] = await Promise.all([getPublicVideos(), getPublicCategories()]);
+    return { videos, categories };
+  },
   head: () => ({
     meta: [
       { title: "Categories · ምድቦች — Shamo Business Portal" },
@@ -18,9 +22,9 @@ export const Route = createFileRoute("/categories")({
 });
 
 function Categories() {
-  const { videos } = Route.useLoaderData();
+  const { videos, categories } = Route.useLoaderData();
   const { lang } = useLang();
-  const [active, setActive] = useState<(typeof categories)[number] | "all">("all");
+  const [active, setActive] = useState<string | "all">("all");
   const list = active === "all" ? videos : videos.filter((video) => video.category === active);
 
   return (
@@ -42,13 +46,13 @@ function Categories() {
             </button>
             {categories.map((c) => (
               <button
-                key={c}
-                onClick={() => setActive(c)}
+                key={c.id}
+                onClick={() => setActive(c.id)}
                 className={`rounded-full border px-4 py-2 text-xs font-semibold transition-colors ${
-                  active === c ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-accent"
+                  active === c.id ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card hover:bg-accent"
                 }`}
               >
-                {dict[c][lang]}
+                {getCategoryLabel(c.id, categories, lang)}
               </button>
             ))}
           </div>

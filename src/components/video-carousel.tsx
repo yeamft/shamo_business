@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useRef } from "react";
 import { ChevronLeft, ChevronRight, Play, Eye } from "lucide-react";
-import { Bi, useLang, type DictKey } from "@/lib/i18n";
+import { Bi, useLang } from "@/lib/i18n";
 import { getByCategory, formatViews, type Video } from "@/lib/videos";
 
 function VideoCard({ v }: { v: Video }) {
@@ -53,7 +53,7 @@ function VideoCard({ v }: { v: Video }) {
   );
 }
 
-export function VideoCarousel({ category, titleEn, titleAm, items }: { category: DictKey; titleEn: string; titleAm: string; items?: Video[] }) {
+export function VideoCarousel({ category, titleEn, titleAm, items }: { category: string; titleEn: string; titleAm: string; items?: Video[] }) {
   const ref = useRef<HTMLDivElement>(null);
   const resolvedItems = items ?? getByCategory(category);
 

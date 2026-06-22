@@ -1,5 +1,5 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { BarChart3, Bell, LayoutDashboard, LogOut, Menu, Search, Settings, Upload, Users, Video as VideoIcon, X } from "lucide-react";
+import { BarChart3, Bell, FolderTree, LayoutDashboard, LogOut, Menu, Search, Settings, Upload, Users, Video as VideoIcon, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 
 import { useAdminAuth } from "@/lib/admin-auth";
@@ -9,6 +9,7 @@ import { Bi } from "@/lib/i18n";
 const navItems = [
   { to: "/admin/dashboard", Icon: LayoutDashboard, en: "Dashboard", am: "ዳሽቦርድ" },
   { to: "/admin/videos", Icon: VideoIcon, en: "Videos", am: "ቪዲዮዎች" },
+  { to: "/admin/categories", Icon: FolderTree, en: "Categories", am: "ምድቦች" },
   { to: "/admin/post", Icon: Upload, en: "Post Video", am: "ቪዲዮ ይለጥፉ" },
   { to: "/admin/registrations", Icon: Users, en: "Registrations", am: "ምዝገባዎች" },
   { to: "/admin/analytics", Icon: BarChart3, en: "Analytics", am: "ትንታኔዎች" },

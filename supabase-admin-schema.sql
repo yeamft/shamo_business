@@ -49,6 +49,16 @@ create table if not exists public.admin_settings (
   notify_on_registration boolean not null default true
 );
 
+create table if not exists public.admin_categories (
+  id text primary key,
+  slug text not null unique,
+  name_en text not null,
+  name_am text not null,
+  description_en text not null default '',
+  description_am text not null default '',
+  created_at timestamptz not null default now()
+);
+
 create table if not exists public.video_comments (
   id text primary key,
   video_id text not null references public.admin_videos(id) on delete cascade,
@@ -63,6 +73,16 @@ insert into public.admin_settings (id, site_title, support_email, default_langua
 values (1, 'Shamo Business Portal', 'admin@shamobusiness.com', 'en', false, true)
 on conflict (id) do nothing;
 
+insert into public.admin_categories (id, slug, name_en, name_am, description_en, description_am)
+values
+  ('cat_opp', 'shamo-business-opportunities', 'Shamo Business Opportunities', 'ሻሞ የቢዝነስ እድሎች', 'Business growth opportunities and market openings.', 'የቢዝነስ እድገት እድሎች እና የገበያ ክፍተቶች።'),
+  ('cat_idea', 'shamo-business-idea', 'Shamo Business Idea', 'ሻሞ የቢዝነስ ሃሳብ', 'Startup ideas and practical concepts for founders.', 'ለጀማሪ ስራ ፈጣሪዎች ሃሳቦች እና ተግባራዊ ምክሮች።'),
+  ('cat_sol', 'shamo-business-solution-idea', 'Shamo Business Solution Idea', 'ሻሞ የቢዝነስ መፍትሄ ሃሳብ', 'Solutions to common operational and growth challenges.', 'ለተለመዱ የስራ እና የእድገት ችግሮች መፍትሄዎች።'),
+  ('cat_invest', 'invest-in-ethiopia', 'Invest in Ethiopia', 'በኢትዮጵያ ኢንቨስት ያድርጉ', 'Investment updates, incentives, and sector outlooks.', 'የኢንቨስትመንት ዝማኔዎች፣ ማበረታቻዎች እና የዘርፍ እይታዎች።'),
+  ('cat_zones', 'ethiopian-industrial-zones', 'Ethiopian Industrial Zones', 'የኢትዮጵያ ኢንዱስትሪያል ዞኖች', 'Industrial parks, zones, and infrastructure features.', 'የኢንዱስትሪ ፓርኮች፣ ዞኖች እና የመሠረተ ልማት ገጽታዎች።'),
+  ('cat_orgs', 'ethiopian-organizations-and-institutions', 'Ethiopian Organizations & Institutions', 'የኢትዮጵያ ድርጅቶች እና ተቋማት', 'Institutions, agencies, and organizations shaping business.', 'ቢዝነስን የሚቀርጹ ተቋማት፣ ኤጀንሲዎች እና ድርጅቶች።')
+on conflict (id) do nothing;
+
 insert into storage.buckets (id, name, public)
 values ('admin-videos', 'admin-videos', true)
 on conflict (id) do nothing;
@@ -74,6 +94,7 @@ on conflict (id) do nothing;
 alter table public.admin_videos enable row level security;
 alter table public.job_registrations enable row level security;
 alter table public.admin_settings enable row level security;
+alter table public.admin_categories enable row level security;
 alter table public.video_comments enable row level security;
 
 drop policy if exists "public read admin_videos" on public.admin_videos;
@@ -90,6 +111,17 @@ with check (auth.role() = 'service_role');
 drop policy if exists "service role full admin_settings" on public.admin_settings;
 create policy "service role full admin_settings"
 on public.admin_settings for all
+using (auth.role() = 'service_role')
+with check (auth.role() = 'service_role');
+
+drop policy if exists "public read admin_categories" on public.admin_categories;
+create policy "public read admin_categories"
+on public.admin_categories for select
+using (true);
+
+drop policy if exists "service role full admin_categories" on public.admin_categories;
+create policy "service role full admin_categories"
+on public.admin_categories for all
 using (auth.role() = 'service_role')
 with check (auth.role() = 'service_role');
 
